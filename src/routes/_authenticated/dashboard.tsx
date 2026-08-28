@@ -3,10 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import {
   dageTil,
   formatDato,
+  hentBegreber,
   hentFag,
   hentForelaesninger,
+  hentLitteratur,
   hentMinFremgang,
 } from "@/lib/pensum";
+import { eksporterPensumSomPdf } from "@/lib/pensumPdf";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -35,6 +38,17 @@ function Dashboard() {
     queryFn: () => hentForelaesninger(),
   });
   const fremgang = useQuery({ queryKey: ["fremgang"], queryFn: hentMinFremgang });
+  const litteratur = useQuery({ queryKey: ["litteratur"], queryFn: () => hentLitteratur() });
+  const begreber = useQuery({ queryKey: ["begreb"], queryFn: hentBegreber });
+
+  function haandterPdfEksport() {
+    eksporterPensumSomPdf(
+      fag.data ?? [],
+      forelaesninger.data ?? [],
+      litteratur.data ?? [],
+      begreber.data ?? [],
+    );
+  }
 
   const gennemgaaede = new Set(
     (fremgang.data ?? [])
@@ -87,6 +101,21 @@ function Dashboard() {
           </div>
         )}
       </section>
+
+      <div className="panel mt-6 flex flex-wrap items-center justify-between gap-3 p-5">
+        <div>
+          <p className="label-mono">Eksport</p>
+          <p className="mt-1 text-sm text-ink-soft">
+            Saml fag, forelæsninger, litteratur og begreber i ét dokument.
+          </p>
+        </div>
+        <button
+          onClick={haandterPdfEksport}
+          className="label-mono shrink-0 rounded-full bg-steel-soft px-2.5 py-1 normal-case tracking-normal"
+        >
+          Eksportér som PDF
+        </button>
+      </div>
 
       <div className="mb-4 mt-8 flex items-baseline justify-between">
         <h2 className="label-mono font-semibold">Fag i semesteret</h2>
