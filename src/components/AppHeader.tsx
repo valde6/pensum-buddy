@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 const linkBase =
   "px-3 py-2 rounded-lg text-sm transition-colors text-ink-soft hover:text-ink";
 
-export function AppHeader({ email }: { email?: string | null }) {
+export function AppHeader({ email }: { email?: string | null | undefined }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
