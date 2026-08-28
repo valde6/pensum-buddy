@@ -14,7 +14,189 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      begreb: {
+        Row: {
+          created_at: string
+          definition: string | null
+          fag_id: string
+          forelaesning_id: string | null
+          id: string
+          navn: string
+        }
+        Insert: {
+          created_at?: string
+          definition?: string | null
+          fag_id: string
+          forelaesning_id?: string | null
+          id?: string
+          navn: string
+        }
+        Update: {
+          created_at?: string
+          definition?: string | null
+          fag_id?: string
+          forelaesning_id?: string | null
+          id?: string
+          navn?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "begreb_fag_id_fkey"
+            columns: ["fag_id"]
+            isOneToOne: false
+            referencedRelation: "fag"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "begreb_forelaesning_id_fkey"
+            columns: ["forelaesning_id"]
+            isOneToOne: false
+            referencedRelation: "forelaesning"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fag: {
+        Row: {
+          created_at: string
+          ects: number
+          eksamensdato: string | null
+          eksamensform: string | null
+          eksamensperiode: string | null
+          id: string
+          navn: string
+          semester: string | null
+        }
+        Insert: {
+          created_at?: string
+          ects?: number
+          eksamensdato?: string | null
+          eksamensform?: string | null
+          eksamensperiode?: string | null
+          id?: string
+          navn: string
+          semester?: string | null
+        }
+        Update: {
+          created_at?: string
+          ects?: number
+          eksamensdato?: string | null
+          eksamensform?: string | null
+          eksamensperiode?: string | null
+          id?: string
+          navn?: string
+          semester?: string | null
+        }
+        Relationships: []
+      }
+      forelaesning: {
+        Row: {
+          created_at: string
+          dato: string | null
+          emne: string
+          fag_id: string
+          id: string
+          note_url: string | null
+          nummer: number
+        }
+        Insert: {
+          created_at?: string
+          dato?: string | null
+          emne: string
+          fag_id: string
+          id?: string
+          note_url?: string | null
+          nummer: number
+        }
+        Update: {
+          created_at?: string
+          dato?: string | null
+          emne?: string
+          fag_id?: string
+          id?: string
+          note_url?: string | null
+          nummer?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forelaesning_fag_id_fkey"
+            columns: ["fag_id"]
+            isOneToOne: false
+            referencedRelation: "fag"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fremgang: {
+        Row: {
+          bruger_id: string
+          forelaesning_id: string
+          id: string
+          opdateret_dato: string
+          status: string
+        }
+        Insert: {
+          bruger_id: string
+          forelaesning_id: string
+          id?: string
+          opdateret_dato?: string
+          status?: string
+        }
+        Update: {
+          bruger_id?: string
+          forelaesning_id?: string
+          id?: string
+          opdateret_dato?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fremgang_forelaesning_id_fkey"
+            columns: ["forelaesning_id"]
+            isOneToOne: false
+            referencedRelation: "forelaesning"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      litteratur: {
+        Row: {
+          created_at: string
+          fag_id: string
+          forfatter: string | null
+          id: string
+          titel: string
+          type: string | null
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          fag_id: string
+          forfatter?: string | null
+          id?: string
+          titel: string
+          type?: string | null
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          fag_id?: string
+          forfatter?: string | null
+          id?: string
+          titel?: string
+          type?: string | null
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "litteratur_fag_id_fkey"
+            columns: ["fag_id"]
+            isOneToOne: false
+            referencedRelation: "fag"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

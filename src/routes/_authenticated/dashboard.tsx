@@ -1,0 +1,153 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import {
+  dageTil,
+  formatDato,
+  hentFag,
+  hentForelaesninger,
+  hentMinFremgang,
+} from "@/lib/pensum";
+
+export const Route = createFileRoute("/_authenticated/dashboard")({
+  head: () => ({
+    meta: [
+      { title: "Dashboard — Pensummit" },
+      {
+        name: "description",
+        content: "Semesterets fag, eksamensformer og din fremgang samlet på én side.",
+      },
+      { property: "og:title", content: "Dashboard — Pensummit" },
+      {
+        property: "og:description",
+        content: "Overblik over fag, ECTS, eksamensformer og din egen studiefremgang.",
+      },
+    ],
+  }),
+  component: Dashboard,
+});
+
+const barFarver = ["bg-steel", "bg-sage", "bg-clay"];
+
+function Dashboard() {
+  const fag = useQuery({ queryKey: ["fag"], queryFn: hentFag });
+  const forelaesninger = useQuery({
+    queryKey: ["forelaesning"],
+    queryFn: () => hentForelaesninger(),
+  });
+  const fremgang = useQuery({ queryKey: ["fremgang"], queryFn: hentMinFremgang });
+
+  const gennemgaaede = new Set(
+    (fremgang.data ?? [])
+      .filter((f) => f.status === "gennemgået" || f.status === "repeteret")
+      .map((f) => f.forelaesning_id),
+  );
+
+  const naesteEksamen = (fag.data ?? [])
+    .filter((f) => f.eksamensdato && new Date(f.eksamensdato).getTime() > Date.now())
+    .sort((a, b) => (a.eksamensdato! < b.eksamensdato! ? -1 : 1))[0];
+
+  const samletEcts = (fag.data ?? []).reduce((sum, f) => sum + Number(f.ects ?? 0), 0);
+
+  return (
+    <>
+      <section className="panel p-6 sm:p-8">
+        {naesteEksamen ? (
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="label-mono tracking-[0.18em]">Nærmeste eksamen</p>
+              <h1 className="mt-3 max-w-[28ch] font-display text-3xl font-semibold leading-none tracking-tight sm:text-4xl">
+                {naesteEksamen.navn}
+              </h1>
+              <p className="mt-3 max-w-[42ch] text-base text-ink-soft">
+                {naesteEksamen.eksamensform ?? "Eksamen"} ·{" "}
+                {formatDato(naesteEksamen.eksamensdato)}
+              </p>
+            </div>
+            <div className="flex shrink-0 items-stretch gap-3">
+              <div className="rounded-xl bg-steel-soft px-5 py-4 text-center">
+                <p className="font-display text-4xl font-semibold leading-none text-steel">
+                  {dageTil(naesteEksamen.eksamensdato!)}
+                </p>
+                <p className="label-mono mt-1">Dage</p>
+              </div>
+              <div className="rounded-xl bg-steel-soft px-5 py-4 text-center">
+                <p className="font-display text-4xl font-semibold leading-none text-steel">
+                  {Math.ceil(dageTil(naesteEksamen.eksamensdato!) / 7)}
+                </p>
+                <p className="label-mono mt-1">Uger</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <p className="label-mono tracking-[0.18em]">Nærmeste eksamen</p>
+            <p className="mt-3 text-base text-ink-soft">
+              Ingen kommende eksamensdato er registreret endnu.
+            </p>
+          </div>
+        )}
+      </section>
+
+      <div className="mb-4 mt-8 flex items-baseline justify-between">
+        <h2 className="label-mono font-semibold">Fag i semesteret</h2>
+        <span className="text-xs text-ink-soft">
+          {(fag.data ?? []).length} fag · {samletEcts} ECTS
+        </span>
+      </div>
+
+      {fag.isLoading ? (
+        <p className="text-sm text-ink-soft">Indlæser fag…</p>
+      ) : (fag.data ?? []).length === 0 ? (
+        <p className="text-sm text-ink-soft">Der er endnu ingen fag oprettet.</p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {(fag.data ?? []).map((f, i) => {
+            const fagsForelaesninger = (forelaesninger.data ?? []).filter(
+              (fl) => fl.fag_id === f.id,
+            );
+            const antal = fagsForelaesninger.length;
+            const klar = fagsForelaesninger.filter((fl) => gennemgaaede.has(fl.id)).length;
+            const pct = antal === 0 ? 0 : Math.round((klar / antal) * 100);
+            return (
+              <Link
+                key={f.id}
+                to="/fag/$fagId"
+                params={{ fagId: f.id }}
+                className="panel block p-5 transition-shadow hover:shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="font-display text-xl font-semibold leading-tight tracking-tight">
+                    {f.navn}
+                  </h3>
+                  {f.eksamensform && (
+                    <span className="label-mono shrink-0 rounded-lg bg-steel-soft px-2 py-1 normal-case tracking-normal text-steel">
+                      {f.eksamensform}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-sm text-ink-soft">
+                  {Number(f.ects)} ECTS
+                  {f.eksamensperiode ? ` · Eksamen ${f.eksamensperiode}` : ""}
+                </p>
+                <div className="mt-4">
+                  <div className="mb-1.5 flex items-center justify-between text-xs text-ink-soft">
+                    <span>Dine forelæsninger</span>
+                    <span className="font-mono">
+                      {klar} / {antal}
+                    </span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-line">
+                    <div
+                      className={`h-full ${barFarver[i % barFarver.length]}`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </>
+  );
+}
