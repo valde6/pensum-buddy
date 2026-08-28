@@ -1,14 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import {
   formatDato,
+  formatTidspunkt,
   hentFag,
   hentForelaesninger,
+  hentKommentarer,
   hentLitteratur,
   hentMinFremgang,
   saetStatus,
   statusFarve,
   STATUSSER,
+  tilfoejKommentar,
+  type Kommentar,
   type Status,
 } from "@/lib/pensum";
 
@@ -45,15 +50,24 @@ function FagSide() {
     queryFn: () => hentLitteratur(fagId),
   });
   const fremgang = useQuery({ queryKey: ["fremgang"], queryFn: hentMinFremgang });
+  const kommentarer = useQuery({ queryKey: ["kommentar"], queryFn: hentKommentarer });
 
   const opdater = useMutation({
     mutationFn: ({ id, status }: { id: string; status: Status }) => saetStatus(id, status),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["fremgang"] }),
   });
 
+  const tilfoejKommentarMutation = useMutation({
+    mutationFn: ({ forelaesningId, tekst }: { forelaesningId: string; tekst: string }) =>
+      tilfoejKommentar(forelaesningId, tekst),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["kommentar"] }),
+  });
+
   const detteFag = (fag.data ?? []).find((f) => f.id === fagId);
   const statusFor = (id: string) =>
     (fremgang.data ?? []).find((f) => f.forelaesning_id === id)?.status ?? "ikke startet";
+  const kommentarerFor = (id: string) =>
+    (kommentarer.data ?? []).filter((k) => k.forelaesning_id === id);
 
   return (
     <>
@@ -91,48 +105,54 @@ function FagSide() {
         {(forelaesninger.data ?? []).map((fl) => {
           const status = statusFor(fl.id);
           return (
-            <div
-              key={fl.id}
-              className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center"
-            >
-              <div className="flex min-w-0 flex-1 items-center gap-4">
-                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-paper font-mono text-sm ring-1 ring-line">
-                  {String(fl.nummer).padStart(2, "0")}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-base font-medium">{fl.emne}</p>
-                  <p className="label-mono mt-0.5 normal-case tracking-normal">
-                    {formatDato(fl.dato)}
-                  </p>
+            <div key={fl.id} className="px-5 py-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <div className="flex min-w-0 flex-1 items-center gap-4">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-paper font-mono text-sm ring-1 ring-line">
+                    {String(fl.nummer).padStart(2, "0")}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-base font-medium">{fl.emne}</p>
+                    <p className="label-mono mt-0.5 normal-case tracking-normal">
+                      {formatDato(fl.dato)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  {fl.note_url ? (
+                    <a
+                      href={fl.note_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm font-medium text-steel underline-offset-4 hover:underline"
+                    >
+                      Åbn note
+                    </a>
+                  ) : (
+                    <span className="text-sm text-ink-soft">Ingen note</span>
+                  )}
+                  <select
+                    value={status}
+                    onChange={(e) =>
+                      opdater.mutate({ id: fl.id, status: e.target.value as Status })
+                    }
+                    className={`rounded-lg px-3 py-1.5 text-sm font-medium ring-1 ${statusFarve(status)}`}
+                  >
+                    {STATUSSER.map((s) => (
+                      <option key={s} value={s}>
+                        {s.charAt(0).toUpperCase() + s.slice(1)}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-3">
-                {fl.note_url ? (
-                  <a
-                    href={fl.note_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-sm font-medium text-steel underline-offset-4 hover:underline"
-                  >
-                    Åbn note
-                  </a>
-                ) : (
-                  <span className="text-sm text-ink-soft">Ingen note</span>
-                )}
-                <select
-                  value={status}
-                  onChange={(e) =>
-                    opdater.mutate({ id: fl.id, status: e.target.value as Status })
-                  }
-                  className={`rounded-lg px-3 py-1.5 text-sm font-medium ring-1 ${statusFarve(status)}`}
-                >
-                  {STATUSSER.map((s) => (
-                    <option key={s} value={s}>
-                      {s.charAt(0).toUpperCase() + s.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <KommentarTraad
+                kommentarer={kommentarerFor(fl.id)}
+                gemmer={tilfoejKommentarMutation.isPending}
+                onTilfoej={(tekst) =>
+                  tilfoejKommentarMutation.mutate({ forelaesningId: fl.id, tekst })
+                }
+              />
             </div>
           );
         })}
@@ -164,5 +184,60 @@ function FagSide() {
         ))}
       </div>
     </>
+  );
+}
+
+function KommentarTraad({
+  kommentarer,
+  gemmer,
+  onTilfoej,
+}: {
+  kommentarer: Kommentar[];
+  gemmer: boolean;
+  onTilfoej: (tekst: string) => void;
+}) {
+  const [tekst, setTekst] = useState("");
+
+  return (
+    <div className="mt-4 space-y-3 border-t border-line pt-4">
+      <p className="label-mono">Kommentarer</p>
+      <div className="space-y-2">
+        {kommentarer.length === 0 && (
+          <p className="text-sm text-ink-soft">Ingen kommentarer endnu.</p>
+        )}
+        {kommentarer.map((k) => (
+          <div key={k.id} className="text-sm">
+            <span className="label-mono normal-case tracking-normal text-ink-soft">
+              {formatTidspunkt(k.oprettet_dato)}
+            </span>
+            <p className="mt-0.5">{k.tekst}</p>
+          </div>
+        ))}
+      </div>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const v = tekst.trim();
+          if (!v) return;
+          onTilfoej(v);
+          setTekst("");
+        }}
+        className="flex gap-2"
+      >
+        <input
+          value={tekst}
+          onChange={(e) => setTekst(e.target.value)}
+          placeholder="Skriv en kommentar…"
+          className="flex-1 rounded-lg bg-paper px-3 py-2 text-sm ring-1 ring-line focus:outline-none focus:ring-2 focus:ring-steel/40"
+        />
+        <button
+          type="submit"
+          disabled={gemmer || !tekst.trim()}
+          className="label-mono shrink-0 rounded-full bg-steel-soft px-3 py-2 normal-case tracking-normal disabled:opacity-60"
+        >
+          Tilføj
+        </button>
+      </form>
+    </div>
   );
 }

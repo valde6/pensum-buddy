@@ -159,6 +159,38 @@ export type Database = {
           },
         ]
       }
+      kommentar: {
+        Row: {
+          bruger_id: string
+          forelaesning_id: string
+          id: string
+          oprettet_dato: string
+          tekst: string
+        }
+        Insert: {
+          bruger_id: string
+          forelaesning_id: string
+          id?: string
+          oprettet_dato?: string
+          tekst: string
+        }
+        Update: {
+          bruger_id?: string
+          forelaesning_id?: string
+          id?: string
+          oprettet_dato?: string
+          tekst?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kommentar_forelaesning_id_fkey"
+            columns: ["forelaesning_id"]
+            isOneToOne: false
+            referencedRelation: "forelaesning"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       litteratur: {
         Row: {
           created_at: string

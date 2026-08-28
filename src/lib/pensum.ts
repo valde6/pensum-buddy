@@ -46,6 +46,14 @@ export type Fremgang = {
   status: string;
 };
 
+export type Kommentar = {
+  id: string;
+  forelaesning_id: string;
+  bruger_id: string;
+  tekst: string;
+  oprettet_dato: string;
+};
+
 function unwrap<T>({ data, error }: { data: T | null; error: { message: string } | null }): T {
   if (error) throw new Error(error.message);
   return (data ?? []) as T;
@@ -91,6 +99,24 @@ export async function saetStatus(forelaesningId: string, status: Status) {
   if (error) throw new Error(error.message);
 }
 
+export async function hentKommentarer() {
+  return unwrap<Kommentar[]>(
+    await supabase.from("kommentar").select("*").order("oprettet_dato"),
+  );
+}
+
+export async function tilfoejKommentar(forelaesningId: string, tekst: string) {
+  const { data: auth } = await supabase.auth.getUser();
+  const brugerId = auth.user?.id;
+  if (!brugerId) throw new Error("Ingen bruger");
+  const { error } = await supabase.from("kommentar").insert({
+    forelaesning_id: forelaesningId,
+    bruger_id: brugerId,
+    tekst,
+  });
+  if (error) throw new Error(error.message);
+}
+
 export async function tilfoejForelaesning(input: {
   fag_id: string;
   nummer: number;
@@ -108,6 +134,15 @@ export function formatDato(dato: string | null) {
     day: "numeric",
     month: "short",
     year: "numeric",
+  });
+}
+
+export function formatTidspunkt(dato: string) {
+  return new Date(dato).toLocaleString("da-DK", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
