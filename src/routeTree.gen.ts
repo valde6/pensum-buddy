@@ -18,6 +18,7 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedBegreberRouteImport } from './routes/_authenticated/begreber'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedRepetitionRouteImport } from './routes/_authenticated/repetition'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedFagFagIdRouteImport } from './routes/_authenticated/fag.$fagId'
@@ -68,6 +69,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRepetitionRoute = AuthenticatedRepetitionRouteImport.update({
+  id: '/repetition',
+  path: '/repetition',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   id: '/.lovable/oauth/consent',
   path: '/.lovable/oauth/consent',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/begreber': typeof AuthenticatedBegreberRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/repetition': typeof AuthenticatedRepetitionRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/fag/$fagId': typeof AuthenticatedFagFagIdRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/begreber': typeof AuthenticatedBegreberRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/repetition': typeof AuthenticatedRepetitionRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/fag/$fagId': typeof AuthenticatedFagFagIdRoute
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/begreber': typeof AuthenticatedBegreberRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/repetition': typeof AuthenticatedRepetitionRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/fag/$fagId': typeof AuthenticatedFagFagIdRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/begreber'
     | '/dashboard'
+    | '/repetition'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/fag/$fagId'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/begreber'
     | '/dashboard'
+    | '/repetition'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/fag/$fagId'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/begreber'
     | '/_authenticated/dashboard'
+    | '/_authenticated/repetition'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/fag/$fagId'
@@ -245,6 +257,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/repetition': {
+      id: '/_authenticated/repetition'
+      path: '/repetition'
+      fullPath: '/repetition'
+      preLoaderRoute: typeof AuthenticatedRepetitionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/.lovable/oauth/consent': {
       id: '/.lovable/oauth/consent'
       path: '/.lovable/oauth/consent'
@@ -273,6 +292,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedBegreberRoute: typeof AuthenticatedBegreberRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedRepetitionRoute: typeof AuthenticatedRepetitionRoute
   AuthenticatedFagFagIdRoute: typeof AuthenticatedFagFagIdRoute
 }
 
@@ -280,6 +300,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedBegreberRoute: AuthenticatedBegreberRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedRepetitionRoute: AuthenticatedRepetitionRoute,
   AuthenticatedFagFagIdRoute: AuthenticatedFagFagIdRoute,
 }
 

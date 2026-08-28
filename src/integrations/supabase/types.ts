@@ -56,6 +56,38 @@ export type Database = {
           },
         ]
       }
+      begreb_repetition: {
+        Row: {
+          begreb_id: string
+          bruger_id: string
+          id: string
+          kunne_den: boolean
+          sidst_repeteret: string
+        }
+        Insert: {
+          begreb_id: string
+          bruger_id: string
+          id?: string
+          kunne_den: boolean
+          sidst_repeteret?: string
+        }
+        Update: {
+          begreb_id?: string
+          bruger_id?: string
+          id?: string
+          kunne_den?: boolean
+          sidst_repeteret?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "begreb_repetition_begreb_id_fkey"
+            columns: ["begreb_id"]
+            isOneToOne: false
+            referencedRelation: "begreb"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fag: {
         Row: {
           created_at: string

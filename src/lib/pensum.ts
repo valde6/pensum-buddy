@@ -47,6 +47,14 @@ export type Fremgang = {
   status: string;
 };
 
+export type BegrebRepetition = {
+  id: string;
+  bruger_id: string;
+  begreb_id: string;
+  sidst_repeteret: string;
+  kunne_den: boolean;
+};
+
 export type Kommentar = {
   id: string;
   forelaesning_id: string;
@@ -116,6 +124,40 @@ export async function tilfoejKommentar(forelaesningId: string, tekst: string) {
     tekst,
   });
   if (error) throw new Error(error.message);
+}
+
+export async function hentMinRepetition() {
+  return unwrap<BegrebRepetition[]>(await supabase.from("begreb_repetition").select("*"));
+}
+
+export async function saetRepetition(begrebId: string, kunneDen: boolean) {
+  const { data: auth } = await supabase.auth.getUser();
+  const brugerId = auth.user?.id;
+  if (!brugerId) throw new Error("Ingen bruger");
+  const { error } = await supabase.from("begreb_repetition").upsert(
+    {
+      bruger_id: brugerId,
+      begreb_id: begrebId,
+      sidst_repeteret: new Date().toISOString(),
+      kunne_den: kunneDen,
+    },
+    { onConflict: "bruger_id,begreb_id" },
+  );
+  if (error) throw new Error(error.message);
+}
+
+// Prioritér begreber uden nogen repetition endnu, dernæst dem der er længst
+// tid siden sidst er blevet repeteret.
+export function vaelgNaesteBegreb(begreber: Begreb[], repetition: BegrebRepetition[]) {
+  const repetitionFor = new Map(repetition.map((r) => [r.begreb_id, r]));
+  const ikkeRepeteret = begreber.filter((b) => !repetitionFor.has(b.id));
+  if (ikkeRepeteret.length > 0) return ikkeRepeteret[0];
+
+  return [...begreber].sort((a, b) => {
+    const sidstA = repetitionFor.get(a.id)?.sidst_repeteret ?? "";
+    const sidstB = repetitionFor.get(b.id)?.sidst_repeteret ?? "";
+    return sidstA < sidstB ? -1 : sidstA > sidstB ? 1 : 0;
+  })[0];
 }
 
 export async function tilfoejForelaesning(input: {

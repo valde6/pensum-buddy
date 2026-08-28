@@ -46,6 +46,9 @@ export function AppHeader({ email }: { email?: string | null | undefined }) {
           <Link to="/begreber" className={linkBase} activeProps={{ className: "px-3 py-2 rounded-lg text-sm bg-steel-soft text-ink font-medium" }}>
             Begreber
           </Link>
+          <Link to="/repetition" className={linkBase} activeProps={{ className: "px-3 py-2 rounded-lg text-sm bg-steel-soft text-ink font-medium" }}>
+            Repetition
+          </Link>
           <Link to="/admin" className={linkBase} activeProps={{ className: "px-3 py-2 rounded-lg text-sm bg-steel-soft text-ink font-medium" }}>
             Admin
           </Link>
@@ -72,6 +75,9 @@ export function AppHeader({ email }: { email?: string | null | undefined }) {
         </Link>
         <Link to="/begreber" className={linkBase} activeProps={{ className: "px-3 py-2 rounded-lg text-sm bg-steel-soft text-ink font-medium" }}>
           Begreber
+        </Link>
+        <Link to="/repetition" className={linkBase} activeProps={{ className: "px-3 py-2 rounded-lg text-sm bg-steel-soft text-ink font-medium" }}>
+          Repetition
         </Link>
         <Link to="/admin" className={linkBase} activeProps={{ className: "px-3 py-2 rounded-lg text-sm bg-steel-soft text-ink font-medium" }}>
           Admin
