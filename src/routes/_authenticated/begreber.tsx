@@ -3,6 +3,45 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { hentBegreber, hentFag, hentForelaesninger } from "@/lib/pensum";
 
+type Begreb = Awaited<ReturnType<typeof hentBegreber>>[number];
+type Fag = Awaited<ReturnType<typeof hentFag>>[number];
+type Forelaesning = Awaited<ReturnType<typeof hentForelaesninger>>[number];
+
+export function bygBegrebsMarkdown(
+  filtreret: Begreb[],
+  fagData: Fag[],
+  forelaesningerData: Forelaesning[],
+  fagFilter: string,
+) {
+  const dato = new Date().toLocaleDateString("da-DK", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  const omfang =
+    fagFilter === "alle"
+      ? "alle fag"
+      : (fagData.find((f) => f.id === fagFilter)?.navn ?? "alle fag");
+
+  const grupper = new Map<string, Begreb[]>();
+  for (const b of filtreret) {
+    const fagNavn = fagData.find((f) => f.id === b.fag_id)?.navn ?? "Uden fag";
+    if (!grupper.has(fagNavn)) grupper.set(fagNavn, []);
+    grupper.get(fagNavn)!.push(b);
+  }
+
+  let md = `# Pensummit — begrebseksport\n_Genereret ${dato}. Omfang: ${omfang}._\n`;
+  for (const [fagNavn, begreberIGruppe] of grupper) {
+    md += `\n## ${fagNavn}\n`;
+    for (const b of begreberIGruppe) {
+      const fl = forelaesningerData.find((x) => x.id === b.forelaesning_id);
+      const forelaesningTekst = fl ? ` (Forelæsning ${fl.nummer}: ${fl.emne})` : "";
+      md += `- **${b.navn}**: ${b.definition}${forelaesningTekst}\n`;
+    }
+  }
+  return md;
+}
+
 export const Route = createFileRoute("/_authenticated/begreber")({
   head: () => ({
     meta: [
@@ -25,6 +64,7 @@ export const Route = createFileRoute("/_authenticated/begreber")({
 function BegreberSide() {
   const [soeg, setSoeg] = useState("");
   const [fagFilter, setFagFilter] = useState<string>("alle");
+  const [kopieret, setKopieret] = useState(false);
 
   const fag = useQuery({ queryKey: ["fag"], queryFn: hentFag });
   const forelaesninger = useQuery({
@@ -42,6 +82,24 @@ function BegreberSide() {
       (b.definition ?? "").toLowerCase().includes(q);
     return passerFag && passerSoeg;
   });
+
+  async function haandterKopier() {
+    const md = bygBegrebsMarkdown(filtreret, fag.data ?? [], forelaesninger.data ?? [], fagFilter);
+    await navigator.clipboard.writeText(md);
+    setKopieret(true);
+    setTimeout(() => setKopieret(false), 2000);
+  }
+
+  function haandterDownload() {
+    const md = bygBegrebsMarkdown(filtreret, fag.data ?? [], forelaesninger.data ?? [], fagFilter);
+    const blob = new Blob([md], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "pensummit-begreber.md";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <>
@@ -82,6 +140,23 @@ function BegreberSide() {
           ))}
         </div>
       </div>
+
+      {filtreret.length > 0 && (
+        <div className="mt-6 flex flex-wrap gap-1.5">
+          <button
+            onClick={haandterKopier}
+            className="label-mono rounded-full bg-steel-soft px-2.5 py-1 normal-case tracking-normal"
+          >
+            {kopieret ? "Kopieret!" : "Kopiér til AI"}
+          </button>
+          <button
+            onClick={haandterDownload}
+            className="label-mono rounded-full bg-steel-soft px-2.5 py-1 normal-case tracking-normal"
+          >
+            Download .md
+          </button>
+        </div>
+      )}
 
       <dl className="mt-6 space-y-3">
         {filtreret.length === 0 && (
