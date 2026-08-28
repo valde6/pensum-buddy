@@ -20,6 +20,7 @@ export type Forelaesning = {
   dato: string | null;
   emne: string;
   note_url: string | null;
+  note_tekst: string | null;
 };
 
 export type Begreb = {

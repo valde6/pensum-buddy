@@ -96,6 +96,7 @@ export type Database = {
           emne: string
           fag_id: string
           id: string
+          note_tekst: string | null
           note_url: string | null
           nummer: number
         }
@@ -105,6 +106,7 @@ export type Database = {
           emne: string
           fag_id: string
           id?: string
+          note_tekst?: string | null
           note_url?: string | null
           nummer: number
         }
@@ -114,6 +116,7 @@ export type Database = {
           emne?: string
           fag_id?: string
           id?: string
+          note_tekst?: string | null
           note_url?: string | null
           nummer?: number
         }

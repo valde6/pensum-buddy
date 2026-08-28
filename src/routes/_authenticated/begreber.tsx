@@ -76,10 +76,13 @@ function BegreberSide() {
   const filtreret = (begreber.data ?? []).filter((b) => {
     const passerFag = fagFilter === "alle" || b.fag_id === fagFilter;
     const q = soeg.trim().toLowerCase();
+    const noteTekst =
+      (forelaesninger.data ?? []).find((x) => x.id === b.forelaesning_id)?.note_tekst ?? "";
     const passerSoeg =
       q === "" ||
       b.navn.toLowerCase().includes(q) ||
-      (b.definition ?? "").toLowerCase().includes(q);
+      (b.definition ?? "").toLowerCase().includes(q) ||
+      noteTekst.toLowerCase().includes(q);
     return passerFag && passerSoeg;
   });
 
