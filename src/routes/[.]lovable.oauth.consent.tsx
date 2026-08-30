@@ -81,7 +81,7 @@ function Consent() {
       setFejl(error.message);
       return;
     }
-    const target = data?.redirect_url ?? data?.redirect_to;
+    const target = redirectMaal(data as AuthorizationDetails | null);
     if (!target) {
       setVenter(false);
       setFejl("Autorisationsserveren returnerede ingen viderestilling.");
