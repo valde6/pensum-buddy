@@ -2,6 +2,17 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+// The supabase.auth.oauth namespace is beta; narrow its loose shapes locally.
+type AuthorizationDetails = {
+  client?: { name?: string | null } | null;
+  redirect_url?: string | null;
+  redirect_to?: string | null;
+};
+
+function redirectMaal(data: AuthorizationDetails | null | undefined) {
+  return data?.redirect_url ?? data?.redirect_to ?? null;
+}
+
 export const Route = createFileRoute("/.lovable/oauth/consent")({
   ssr: false,
   head: () => ({
