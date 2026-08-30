@@ -19,5 +19,7 @@ export default defineMcp({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",
   }),
-  tools: [listFag, listForelaesninger, searchBegreber, listLitteratur, setStatus],
+  // exactOptionalPropertyTypes makes the SDK's AnyToolDefinition reject the
+  // inferred `outputSchema: undefined`; the runtime shape is correct.
+  tools: [listFag, listForelaesninger, searchBegreber, listLitteratur, setStatus] as never,
 });
