@@ -21,7 +21,7 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
     ],
   }),
   validateSearch: (s: Record<string, unknown>) => ({
-    authorization_id: typeof s.authorization_id === "string" ? s.authorization_id : "",
+    authorization_id: typeof s['authorization_id'] === "string" ? s['authorization_id'] : "",
   }),
   beforeLoad: async ({ search, location }) => {
     if (!search.authorization_id) throw new Error("Manglende authorization_id");
@@ -33,9 +33,10 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
     const authorizationId = new URLSearchParams(location.search).get("authorization_id")!;
     const { data, error } = await supabase.auth.oauth.getAuthorizationDetails(authorizationId);
     if (error) throw error;
-    const immediate = data?.redirect_url ?? data?.redirect_to;
-    if (immediate && !data?.client) throw redirect({ href: immediate });
-    return data;
+    const detaljer = data as AuthorizationDetails | null;
+    const immediate = redirectMaal(detaljer);
+    if (immediate && !detaljer?.client) throw redirect({ href: immediate });
+    return detaljer;
   },
   component: Consent,
   errorComponent: ({ error }) => (
@@ -56,6 +57,7 @@ function Consent() {
   const [venter, setVenter] = useState(false);
   const [fejl, setFejl] = useState<string | null>(null);
   const navn = details?.client?.name ?? "Klienten";
+
 
   async function beslut(godkend: boolean) {
     setVenter(true);
