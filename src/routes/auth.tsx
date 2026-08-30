@@ -39,7 +39,7 @@ function AuthPage() {
   const [venter, setVenter] = useState(false);
 
   function videre() {
-    const sti = sikkerSti(next);
+    const sti = sikkerSti(next ?? "");
     if (sti) {
       window.location.replace(sti);
       return;
