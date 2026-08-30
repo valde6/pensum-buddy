@@ -2,6 +2,17 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+// The supabase.auth.oauth namespace is beta; narrow its loose shapes locally.
+type AuthorizationDetails = {
+  client?: { name?: string | null } | null;
+  redirect_url?: string | null;
+  redirect_to?: string | null;
+};
+
+function redirectMaal(data: AuthorizationDetails | null | undefined) {
+  return data?.redirect_url ?? data?.redirect_to ?? null;
+}
+
 export const Route = createFileRoute("/.lovable/oauth/consent")({
   ssr: false,
   head: () => ({
@@ -21,7 +32,7 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
     ],
   }),
   validateSearch: (s: Record<string, unknown>) => ({
-    authorization_id: typeof s.authorization_id === "string" ? s.authorization_id : "",
+    authorization_id: typeof s['authorization_id'] === "string" ? s['authorization_id'] : "",
   }),
   beforeLoad: async ({ search, location }) => {
     if (!search.authorization_id) throw new Error("Manglende authorization_id");
@@ -33,9 +44,10 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
     const authorizationId = new URLSearchParams(location.search).get("authorization_id")!;
     const { data, error } = await supabase.auth.oauth.getAuthorizationDetails(authorizationId);
     if (error) throw error;
-    const immediate = data?.redirect_url ?? data?.redirect_to;
-    if (immediate && !data?.client) throw redirect({ href: immediate });
-    return data;
+    const detaljer = data as AuthorizationDetails | null;
+    const immediate = redirectMaal(detaljer);
+    if (immediate && !detaljer?.client) throw redirect({ href: immediate });
+    return detaljer;
   },
   component: Consent,
   errorComponent: ({ error }) => (
@@ -57,6 +69,7 @@ function Consent() {
   const [fejl, setFejl] = useState<string | null>(null);
   const navn = details?.client?.name ?? "Klienten";
 
+
   async function beslut(godkend: boolean) {
     setVenter(true);
     setFejl(null);
@@ -68,7 +81,7 @@ function Consent() {
       setFejl(error.message);
       return;
     }
-    const target = data?.redirect_url ?? data?.redirect_to;
+    const target = redirectMaal(data as AuthorizationDetails | null);
     if (!target) {
       setVenter(false);
       setFejl("Autorisationsserveren returnerede ingen viderestilling.");

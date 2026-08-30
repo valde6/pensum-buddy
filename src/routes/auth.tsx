@@ -20,21 +20,39 @@ export const Route = createFileRoute("/auth")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>): { next?: string } =>
+    typeof s['next'] === "string" && s['next'] ? { next: s['next'] } : {},
   component: AuthPage,
 });
 
+// Only same-origin relative paths may be used as a post-login destination.
+function sikkerSti(next: string) {
+  return next.startsWith("/") && !next.startsWith("//") ? next : null;
+}
+
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fejl, setFejl] = useState<string | null>(null);
   const [venter, setVenter] = useState(false);
 
+  function videre() {
+    const sti = sikkerSti(next ?? "");
+    if (sti) {
+      window.location.replace(sti);
+      return;
+    }
+    navigate({ to: "/dashboard", replace: true });
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
+      if (data.session) videre();
     });
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate, next]);
 
   async function logInd(e: React.FormEvent) {
     e.preventDefault();
@@ -46,7 +64,7 @@ function AuthPage() {
       setFejl("Kunne ikke logge ind. Kontrollér e-mail og adgangskode.");
       return;
     }
-    navigate({ to: "/dashboard", replace: true });
+    videre();
   }
 
   return (
