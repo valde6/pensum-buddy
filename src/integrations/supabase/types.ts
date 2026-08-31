@@ -93,9 +93,12 @@ export type Database = {
           created_at: string
           ects: number
           eksamensdato: string | null
+          eksamensdetaljer: string | null
           eksamensform: string | null
           eksamensperiode: string | null
           id: string
+          kursusindhold: string | null
+          laeringsmaal: string | null
           navn: string
           semester: string | null
         }
@@ -103,9 +106,12 @@ export type Database = {
           created_at?: string
           ects?: number
           eksamensdato?: string | null
+          eksamensdetaljer?: string | null
           eksamensform?: string | null
           eksamensperiode?: string | null
           id?: string
+          kursusindhold?: string | null
+          laeringsmaal?: string | null
           navn: string
           semester?: string | null
         }
@@ -113,9 +119,12 @@ export type Database = {
           created_at?: string
           ects?: number
           eksamensdato?: string | null
+          eksamensdetaljer?: string | null
           eksamensform?: string | null
           eksamensperiode?: string | null
           id?: string
+          kursusindhold?: string | null
+          laeringsmaal?: string | null
           navn?: string
           semester?: string | null
         }

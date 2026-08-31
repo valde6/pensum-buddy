@@ -95,6 +95,42 @@ function FagSide() {
         </dl>
       </section>
 
+      {detteFag &&
+        (detteFag.eksamensdetaljer || detteFag.laeringsmaal || detteFag.kursusindhold) && (
+          <div className="mt-6 space-y-4">
+            {detteFag.eksamensdetaljer && (
+              <section className="panel p-6 sm:p-8">
+                <h2 className="label-mono mb-3 font-semibold">Eksamen i detaljer</h2>
+                <div className="space-y-3 text-sm leading-relaxed text-ink-soft">
+                  {splitAfsnit(detteFag.eksamensdetaljer).map((afsnit, i) => (
+                    <p key={i}>{afsnit}</p>
+                  ))}
+                </div>
+              </section>
+            )}
+            {detteFag.laeringsmaal && (
+              <section className="panel p-6 sm:p-8">
+                <h2 className="label-mono mb-3 font-semibold">Læringsmål</h2>
+                <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-ink-soft">
+                  {splitPunkter(detteFag.laeringsmaal).map((punkt, i) => (
+                    <li key={i}>{punkt}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+            {detteFag.kursusindhold && (
+              <section className="panel p-6 sm:p-8">
+                <h2 className="label-mono mb-3 font-semibold">Kursets indhold</h2>
+                <div className="space-y-3 text-sm leading-relaxed text-ink-soft">
+                  {splitAfsnit(detteFag.kursusindhold).map((afsnit, i) => (
+                    <p key={i}>{afsnit}</p>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        )}
+
       <h2 className="label-mono mb-4 mt-10 font-semibold">Forelæsninger</h2>
       <div className="panel divide-y divide-line overflow-hidden">
         {(forelaesninger.data ?? []).length === 0 && (
@@ -185,6 +221,21 @@ function FagSide() {
       </div>
     </>
   );
+}
+
+function splitAfsnit(tekst: string) {
+  return tekst
+    .split(/\n\s*\n/)
+    .map((afsnit) => afsnit.trim())
+    .filter(Boolean);
+}
+
+function splitPunkter(tekst: string) {
+  return tekst
+    .split("\n")
+    .map((linje) => linje.trim())
+    .filter(Boolean)
+    .map((linje) => (linje.startsWith("- ") ? linje.slice(2) : linje));
 }
 
 function KommentarTraad({

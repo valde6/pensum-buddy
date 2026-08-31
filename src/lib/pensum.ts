@@ -11,6 +11,9 @@ export type Fag = {
   eksamensperiode: string | null;
   semester: string | null;
   eksamensdato: string | null;
+  laeringsmaal: string | null;
+  kursusindhold: string | null;
+  eksamensdetaljer: string | null;
 };
 
 export type Forelaesning = {
