@@ -97,9 +97,11 @@ export type KalenderSvar =
   | { harKalender: false }
   | { harKalender: true; begivenheder: KalenderBegivenhed[] };
 
+export type FremdriftTal = { forbi: number; total: number };
+
 export type ForelaesningsFremdrift =
   | { tilknyttet: false }
-  | { tilknyttet: true; forbi: number; total: number };
+  | { tilknyttet: true; forelaesninger: FremdriftTal; ovelser: FremdriftTal };
 
 function unwrap<T>({ data, error }: { data: T | null; error: { message: string } | null }): T {
   if (error) throw new Error(error.message);
@@ -245,12 +247,19 @@ export async function hentKalenderFra(fra: string): Promise<KalenderSvar> {
   return kaldKalenderApi(`/api/kalender?fra=${encodeURIComponent(fra)}`);
 }
 
+function taelFremdrift(begivenheder: KalenderBegivenhed[], iDagKl0000: Date): FremdriftTal {
+  const total = begivenheder.length;
+  const forbi = begivenheder.filter((b) => new Date(b.start) < iDagKl0000).length;
+  return { forbi, total };
+}
+
 // Udleder "Dine forelæsninger"-fremdrift direkte af kalenderen i stedet for
 // fremgang-tabellen: hvor mange af fagets skemalagte forelæsninger (spor "LA")
-// der allerede har fundet sted, ud af det samlede antal i semesteret. Rører
-// aldrig fremgang — det er en helt separat, kalenderudledt tæller. "fra" sat
-// langt tilbage i semesterets start, så både afholdte og kommende forelæsninger
-// tælles med (ikke kun /api/kalenders normale "kun fremtidige").
+// og øvelsestimer (spor "XB") der allerede har fundet sted, ud af det samlede
+// antal i semesteret — talt separat for de to spor. Rører aldrig fremgang —
+// det er en helt separat, kalenderudledt tæller. "fra" sat langt tilbage i
+// semesterets start, så både afholdte og kommende timer tælles med (ikke kun
+// /api/kalenders normale "kun fremtidige").
 export async function hentForelaesningsFremdrift(fagId: string): Promise<ForelaesningsFremdrift> {
   const svar = await kaldKalenderApi(`/api/kalender?fra=${encodeURIComponent("2026-01-01")}`);
   if (!svar.harKalender) return { tilknyttet: false };
@@ -258,11 +267,17 @@ export async function hentForelaesningsFremdrift(fagId: string): Promise<Forelae
   const iDagKl0000 = new Date();
   iDagKl0000.setHours(0, 0, 0, 0);
 
-  const forelaesninger = svar.begivenheder.filter((b) => b.fagId === fagId && b.spor === "LA");
-  const total = forelaesninger.length;
-  const forbi = forelaesninger.filter((b) => new Date(b.start) < iDagKl0000).length;
+  const begivenhederForFag = svar.begivenheder.filter((b) => b.fagId === fagId);
+  const forelaesninger = taelFremdrift(
+    begivenhederForFag.filter((b) => b.spor === "LA"),
+    iDagKl0000,
+  );
+  const ovelser = taelFremdrift(
+    begivenhederForFag.filter((b) => b.spor === "XB"),
+    iDagKl0000,
+  );
 
-  return { tilknyttet: true, forbi, total };
+  return { tilknyttet: true, forelaesninger, ovelser };
 }
 
 export async function tilfoejForelaesning(input: {
