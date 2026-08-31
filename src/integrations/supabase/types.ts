@@ -88,6 +88,27 @@ export type Database = {
           },
         ]
       }
+      bruger_kalender: {
+        Row: {
+          bruger_id: string
+          ics_url: string
+          id: string
+          opdateret_dato: string
+        }
+        Insert: {
+          bruger_id: string
+          ics_url: string
+          id?: string
+          opdateret_dato?: string
+        }
+        Update: {
+          bruger_id?: string
+          ics_url?: string
+          id?: string
+          opdateret_dato?: string
+        }
+        Relationships: []
+      }
       fag: {
         Row: {
           created_at: string

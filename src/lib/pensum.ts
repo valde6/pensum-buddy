@@ -67,6 +67,28 @@ export type Kommentar = {
   oprettet_dato: string;
 };
 
+export type BrugerKalender = {
+  id: string;
+  bruger_id: string;
+  ics_url: string;
+  opdateret_dato: string;
+};
+
+export type KalenderBegivenhed = {
+  fagId: string;
+  fagNavn: string;
+  spor: "LA" | "XB";
+  type: string;
+  start: string;
+  slut: string;
+  lokale: string | null;
+  forelaesningId: string | null;
+};
+
+export type KalenderSvar =
+  | { harKalender: false }
+  | { harKalender: true; begivenheder: KalenderBegivenhed[] };
+
 function unwrap<T>({ data, error }: { data: T | null; error: { message: string } | null }): T {
   if (error) throw new Error(error.message);
   return (data ?? []) as T;
@@ -164,6 +186,35 @@ export function vaelgNaesteBegreb(begreber: Begreb[], repetition: BegrebRepetiti
   })[0];
 }
 
+export async function hentMinKalender() {
+  const { data, error } = await supabase.from("bruger_kalender").select("*").maybeSingle();
+  if (error) throw new Error(error.message);
+  return data as BrugerKalender | null;
+}
+
+export async function gemKalenderUrl(icsUrl: string) {
+  const { data: auth } = await supabase.auth.getUser();
+  const brugerId = auth.user?.id;
+  if (!brugerId) throw new Error("Ingen bruger");
+  const { error } = await supabase
+    .from("bruger_kalender")
+    .upsert({ bruger_id: brugerId, ics_url: icsUrl }, { onConflict: "bruger_id" });
+  if (error) throw new Error(error.message);
+}
+
+// ICS-feedet hentes server-side af /api/kalender (CORS ville ellers blokere det,
+// og url'en skal aldrig ud i browserens netværkstrafik).
+export async function hentKalender(): Promise<KalenderSvar> {
+  const { data: auth } = await supabase.auth.getSession();
+  const token = auth.session?.access_token;
+  if (!token) throw new Error("Ingen bruger");
+  const res = await fetch("/api/kalender", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Kunne ikke hente kalenderen (status ${res.status})`);
+  return (await res.json()) as KalenderSvar;
+}
+
 export async function tilfoejForelaesning(input: {
   fag_id: string;
   nummer: number;
@@ -190,6 +241,18 @@ export function formatTidspunkt(dato: string) {
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
+  });
+}
+
+export function formatKlokkeslaet(dato: string) {
+  return new Date(dato).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+}
+
+export function formatDag(dato: string) {
+  return new Date(dato).toLocaleDateString("da-DK", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
   });
 }
 
