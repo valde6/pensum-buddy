@@ -155,7 +155,15 @@ function FagSide() {
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
-                  {fl.note_url ? (
+                  {fl.note_html ? (
+                    <Link
+                      to="/fag/$fagId/noter/$forelaesningId"
+                      params={{ fagId, forelaesningId: fl.id }}
+                      className="text-sm font-medium text-steel underline-offset-4 hover:underline"
+                    >
+                      Åbn note
+                    </Link>
+                  ) : fl.note_url ? (
                     <a
                       href={fl.note_url}
                       target="_blank"
