@@ -18,7 +18,9 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedBegreberRouteImport } from './routes/_authenticated/begreber'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedKalenderRouteImport } from './routes/_authenticated/kalender'
 import { Route as AuthenticatedRepetitionRouteImport } from './routes/_authenticated/repetition'
+import { Route as ApiKalenderRouteImport } from './routes/api/kalender'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedFagFagIdRouteImport } from './routes/_authenticated/fag.$fagId'
@@ -71,10 +73,20 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedKalenderRoute = AuthenticatedKalenderRouteImport.update({
+  id: '/kalender',
+  path: '/kalender',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedRepetitionRoute = AuthenticatedRepetitionRouteImport.update({
   id: '/repetition',
   path: '/repetition',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApiKalenderRoute = ApiKalenderRouteImport.update({
+  id: '/api/kalender',
+  path: '/api/kalender',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   id: '/.lovable/oauth/consent',
@@ -114,7 +126,9 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/begreber': typeof AuthenticatedBegreberRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/kalender': typeof AuthenticatedKalenderRoute
   '/repetition': typeof AuthenticatedRepetitionRoute
+  '/api/kalender': typeof ApiKalenderRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/fag/$fagId': typeof AuthenticatedFagFagIdRouteWithChildren
@@ -130,7 +144,9 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/begreber': typeof AuthenticatedBegreberRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/kalender': typeof AuthenticatedKalenderRoute
   '/repetition': typeof AuthenticatedRepetitionRoute
+  '/api/kalender': typeof ApiKalenderRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/fag/$fagId': typeof AuthenticatedFagFagIdRouteWithChildren
@@ -148,7 +164,9 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/begreber': typeof AuthenticatedBegreberRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/kalender': typeof AuthenticatedKalenderRoute
   '/_authenticated/repetition': typeof AuthenticatedRepetitionRoute
+  '/api/kalender': typeof ApiKalenderRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/fag/$fagId': typeof AuthenticatedFagFagIdRouteWithChildren
@@ -166,7 +184,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/begreber'
     | '/dashboard'
+    | '/kalender'
     | '/repetition'
+    | '/api/kalender'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/fag/$fagId'
@@ -182,7 +202,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/begreber'
     | '/dashboard'
+    | '/kalender'
     | '/repetition'
+    | '/api/kalender'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/fag/$fagId'
@@ -199,7 +221,9 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/begreber'
     | '/_authenticated/dashboard'
+    | '/_authenticated/kalender'
     | '/_authenticated/repetition'
+    | '/api/kalender'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/fag/$fagId'
@@ -214,6 +238,7 @@ export interface RootRouteChildren {
   McpRoute: typeof McpRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  ApiKalenderRoute: typeof ApiKalenderRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiFagFagNavnForelaesningerRoute: typeof ApiFagFagNavnForelaesningerRoute
@@ -284,12 +309,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/kalender': {
+      id: '/_authenticated/kalender'
+      path: '/kalender'
+      fullPath: '/kalender'
+      preLoaderRoute: typeof AuthenticatedKalenderRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/repetition': {
       id: '/_authenticated/repetition'
       path: '/repetition'
       fullPath: '/repetition'
       preLoaderRoute: typeof AuthenticatedRepetitionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/kalender': {
+      id: '/api/kalender'
+      path: '/api/kalender'
+      fullPath: '/api/kalender'
+      preLoaderRoute: typeof ApiKalenderRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/.lovable/oauth/consent': {
       id: '/.lovable/oauth/consent'
@@ -347,6 +386,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedBegreberRoute: typeof AuthenticatedBegreberRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedKalenderRoute: typeof AuthenticatedKalenderRoute
   AuthenticatedRepetitionRoute: typeof AuthenticatedRepetitionRoute
   AuthenticatedFagFagIdRoute: typeof AuthenticatedFagFagIdRouteWithChildren
 }
@@ -355,6 +395,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedBegreberRoute: AuthenticatedBegreberRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedKalenderRoute: AuthenticatedKalenderRoute,
   AuthenticatedRepetitionRoute: AuthenticatedRepetitionRoute,
   AuthenticatedFagFagIdRoute: AuthenticatedFagFagIdRouteWithChildren,
 }
@@ -370,6 +411,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  ApiKalenderRoute: ApiKalenderRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiFagFagNavnForelaesningerRoute: ApiFagFagNavnForelaesningerRoute,
