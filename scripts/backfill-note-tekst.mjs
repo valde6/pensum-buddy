@@ -12,8 +12,12 @@
 //
 // Kræver service role-nøglen (ikke den offentlige anon/publishable-nøgle),
 // da scriptet skal kunne opdatere alle forelæsninger uafhængigt af RLS.
+//
+// Importerer stripHtml direkte fra en .ts-fil — kræver Node ≥ 22.6 med
+// indbygget TypeScript-understøttelse (ingen flag nødvendige på Node 22.19+).
 
 import { createClient } from "@supabase/supabase-js";
+import { stripHtml } from "../src/lib/stripHtml.ts";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -24,21 +28,6 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-function stripHtml(html) {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
 async function hentOgStrip(url) {
   const res = await fetch(url);
