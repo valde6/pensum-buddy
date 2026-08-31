@@ -64,10 +64,18 @@ export const Route = createFileRoute("/api/kalender")({
           return json({ error: "Kunne ikke hente kalenderfeedet" }, { status: 502 });
         }
 
+        // Uden "fra": bevar den oprindelige opførsel (kun fremtidige begivenheder,
+        // start > nu). Med en gyldig "fra"-dato: start >= fra i stedet.
+        const fraParam = new URL(request.url).searchParams.get("fra");
+        const fraTime = fraParam ? Date.parse(fraParam) : NaN;
+        const brugFra = !Number.isNaN(fraTime);
+
         const nu = Date.now();
         const events: VEvent[] = [];
         for (const entry of Object.values(feed)) {
-          if (entry && entry.type === "VEVENT" && entry.start.getTime() > nu) {
+          if (!entry || entry.type !== "VEVENT") continue;
+          const start = entry.start.getTime();
+          if (brugFra ? start >= fraTime : start > nu) {
             events.push(entry);
           }
         }

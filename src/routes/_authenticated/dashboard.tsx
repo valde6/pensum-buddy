@@ -3,9 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import {
   dageTil,
   formatDato,
+  formatKlokkeslaet,
   hentBegreber,
   hentFag,
   hentForelaesninger,
+  hentKalenderFra,
   hentLitteratur,
   hentMinFremgang,
 } from "@/lib/pensum";
@@ -40,6 +42,22 @@ function Dashboard() {
   const fremgang = useQuery({ queryKey: ["fremgang"], queryFn: hentMinFremgang });
   const litteratur = useQuery({ queryKey: ["litteratur"], queryFn: () => hentLitteratur() });
   const begreber = useQuery({ queryKey: ["begreb"], queryFn: hentBegreber });
+
+  const startAfIDag = new Date();
+  startAfIDag.setHours(0, 0, 0, 0);
+  const startAfIMorgen = new Date(startAfIDag);
+  startAfIMorgen.setDate(startAfIMorgen.getDate() + 1);
+
+  const kalenderIDag = useQuery({
+    queryKey: ["kalender", "i-dag", startAfIDag.toISOString()],
+    queryFn: () => hentKalenderFra(startAfIDag.toISOString()),
+  });
+
+  const begivenhederIDag = kalenderIDag.data?.harKalender
+    ? kalenderIDag.data.begivenheder
+        .filter((b) => new Date(b.start) < startAfIMorgen)
+        .sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : 0))
+    : [];
 
   function haandterPdfEksport() {
     eksporterPensumSomPdf(
@@ -99,6 +117,44 @@ function Dashboard() {
               Ingen kommende eksamensdato er registreret endnu.
             </p>
           </div>
+        )}
+      </section>
+
+      <section className="panel mt-6 p-6 sm:p-8">
+        <p className="label-mono tracking-[0.18em]">I dag i kalenderen</p>
+        {kalenderIDag.isLoading ? (
+          <p className="mt-3 text-sm text-ink-soft">Indlæser kalender…</p>
+        ) : !kalenderIDag.data ? (
+          <p className="mt-3 text-sm text-ink-soft">Kunne ikke indlæse kalenderen.</p>
+        ) : !kalenderIDag.data.harKalender ? (
+          <p className="mt-3 text-sm text-ink-soft">
+            Ingen kalender tilknyttet endnu.{" "}
+            <Link
+              to="/kalender"
+              className="font-medium text-steel underline-offset-4 hover:underline"
+            >
+              Kom i gang på Kalender-siden
+            </Link>
+            .
+          </p>
+        ) : begivenhederIDag.length === 0 ? (
+          <p className="mt-3 text-sm text-ink-soft">Ingen skemalagte timer i dag.</p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {begivenhederIDag.map((b) => (
+              <li
+                key={`${b.fagId}-${b.start}`}
+                className="flex flex-wrap items-baseline gap-x-2 text-sm"
+              >
+                <span className="label-mono normal-case tracking-normal text-ink-soft">
+                  {formatKlokkeslaet(b.start)}–{formatKlokkeslaet(b.slut)}
+                </span>
+                <span className="font-medium">{b.fagNavn}</span>
+                <span className="text-ink-soft">{b.type}</span>
+                <span className="text-ink-soft">· {b.lokale ?? "Online"}</span>
+              </li>
+            ))}
+          </ul>
         )}
       </section>
 

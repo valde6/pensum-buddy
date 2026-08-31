@@ -204,15 +204,27 @@ export async function gemKalenderUrl(icsUrl: string) {
 
 // ICS-feedet hentes server-side af /api/kalender (CORS ville ellers blokere det,
 // og url'en skal aldrig ud i browserens netværkstrafik).
-export async function hentKalender(): Promise<KalenderSvar> {
+async function kaldKalenderApi(url: string): Promise<KalenderSvar> {
   const { data: auth } = await supabase.auth.getSession();
   const token = auth.session?.access_token;
   if (!token) throw new Error("Ingen bruger");
-  const res = await fetch("/api/kalender", {
+  const res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Kunne ikke hente kalenderen (status ${res.status})`);
   return (await res.json()) as KalenderSvar;
+}
+
+export async function hentKalender(): Promise<KalenderSvar> {
+  return kaldKalenderApi("/api/kalender");
+}
+
+// Som hentKalender, men begrænset til begivenheder med start >= fra (ISO-dato) —
+// bruges af Dashboard til "I dag i kalenderen". hentKalender selv holdes med
+// uændret nul-argument-signatur, så den forbliver kompatibel som bar queryFn
+// i kalender.tsx.
+export async function hentKalenderFra(fra: string): Promise<KalenderSvar> {
+  return kaldKalenderApi(`/api/kalender?fra=${encodeURIComponent(fra)}`);
 }
 
 export async function tilfoejForelaesning(input: {
