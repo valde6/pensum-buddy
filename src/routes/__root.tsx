@@ -102,10 +102,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+const TEMA_SCRIPT = `(function(){try{var t=localStorage.getItem("pensummit-theme");if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}if(t==="dark"){document.documentElement.classList.add("dark");}}catch(e){}})();`;
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
+        {/* No-flash tema-script: kører synkront før appen renderer, så siden
+            aldrig blinker forkert tema ved indlæsning. Hold i sync med
+            src/lib/theme.ts, som ikke kan importeres synkront her. */}
+        <script dangerouslySetInnerHTML={{ __html: TEMA_SCRIPT }} />
         <HeadContent />
       </head>
       <body>

@@ -1,6 +1,9 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { Moon, Sun } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { nuvaerendeTema, skiftTema } from "@/lib/theme";
 
 const linkBase =
   "px-3 py-2 rounded-lg text-sm transition-colors text-ink-soft hover:text-ink";
@@ -8,6 +11,11 @@ const linkBase =
 export function AppHeader({ email }: { email?: string | null | undefined }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [tema, setTema] = useState(() => nuvaerendeTema());
+
+  function haandterTemaSkift() {
+    setTema(skiftTema());
+  }
 
   const initialer = (email ?? "?")
     .split(/[.@]/)
@@ -58,6 +66,13 @@ export function AppHeader({ email }: { email?: string | null | undefined }) {
         </nav>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={haandterTemaSkift}
+            aria-label={tema === "dark" ? "Skift til lyst tema" : "Skift til mørkt tema"}
+            className="grid size-9 place-items-center rounded-lg text-ink-soft transition-colors hover:text-ink"
+          >
+            {tema === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          </button>
           <button
             onClick={logUd}
             className="label-mono rounded-lg px-2 py-2 transition-colors hover:text-ink"
