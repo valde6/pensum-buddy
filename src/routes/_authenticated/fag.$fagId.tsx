@@ -8,6 +8,7 @@ import {
   hentEksamener,
   hentFag,
   hentForelaesninger,
+  hentForelaesningsFremdrift,
   hentKommentarer,
   hentLitteratur,
   hentMinFremgang,
@@ -18,6 +19,7 @@ import {
   type Kommentar,
   type Status,
 } from "@/lib/pensum";
+import { FremdriftVisning } from "@/components/FremdriftVisning";
 
 export const Route = createFileRoute("/_authenticated/fag/$fagId")({
   head: () => ({
@@ -57,6 +59,10 @@ function FagSide() {
   });
   const fremgang = useQuery({ queryKey: ["fremgang"], queryFn: hentMinFremgang });
   const kommentarer = useQuery({ queryKey: ["kommentar"], queryFn: hentKommentarer });
+  const fremdrift = useQuery({
+    queryKey: ["forelaesningsFremdrift", fagId],
+    queryFn: () => hentForelaesningsFremdrift(fagId),
+  });
 
   const opdater = useMutation({
     mutationFn: ({ id, status }: { id: string; status: Status }) => saetStatus(id, status),
@@ -99,6 +105,9 @@ function FagSide() {
             <dd className="mt-1 text-base">{detteFag?.eksamensperiode ?? "—"}</dd>
           </div>
         </dl>
+        <div className="mt-6">
+          <FremdriftVisning fremdrift={fremdrift.data} isLoading={fremdrift.isLoading} />
+        </div>
       </section>
 
       <section className="panel mt-6 p-6 sm:p-8">

@@ -97,6 +97,10 @@ export type KalenderSvar =
   | { harKalender: false }
   | { harKalender: true; begivenheder: KalenderBegivenhed[] };
 
+export type ForelaesningsFremdrift =
+  | { tilknyttet: false }
+  | { tilknyttet: true; forbi: number; total: number };
+
 function unwrap<T>({ data, error }: { data: T | null; error: { message: string } | null }): T {
   if (error) throw new Error(error.message);
   return (data ?? []) as T;
@@ -239,6 +243,26 @@ export async function hentKalender(): Promise<KalenderSvar> {
 // i kalender.tsx.
 export async function hentKalenderFra(fra: string): Promise<KalenderSvar> {
   return kaldKalenderApi(`/api/kalender?fra=${encodeURIComponent(fra)}`);
+}
+
+// Udleder "Dine forelæsninger"-fremdrift direkte af kalenderen i stedet for
+// fremgang-tabellen: hvor mange af fagets skemalagte forelæsninger (spor "LA")
+// der allerede har fundet sted, ud af det samlede antal i semesteret. Rører
+// aldrig fremgang — det er en helt separat, kalenderudledt tæller. "fra" sat
+// langt tilbage i semesterets start, så både afholdte og kommende forelæsninger
+// tælles med (ikke kun /api/kalenders normale "kun fremtidige").
+export async function hentForelaesningsFremdrift(fagId: string): Promise<ForelaesningsFremdrift> {
+  const svar = await kaldKalenderApi(`/api/kalender?fra=${encodeURIComponent("2026-01-01")}`);
+  if (!svar.harKalender) return { tilknyttet: false };
+
+  const iDagKl0000 = new Date();
+  iDagKl0000.setHours(0, 0, 0, 0);
+
+  const forelaesninger = svar.begivenheder.filter((b) => b.fagId === fagId && b.spor === "LA");
+  const total = forelaesninger.length;
+  const forbi = forelaesninger.filter((b) => new Date(b.start) < iDagKl0000).length;
+
+  return { tilknyttet: true, forbi, total };
 }
 
 export async function tilfoejForelaesning(input: {
