@@ -5,6 +5,7 @@ import {
   formatDato,
   formatKlokkeslaet,
   hentBegreber,
+  hentEksamener,
   hentFag,
   hentForelaesninger,
   hentKalenderFra,
@@ -42,6 +43,7 @@ function Dashboard() {
   const fremgang = useQuery({ queryKey: ["fremgang"], queryFn: hentMinFremgang });
   const litteratur = useQuery({ queryKey: ["litteratur"], queryFn: () => hentLitteratur() });
   const begreber = useQuery({ queryKey: ["begreb"], queryFn: hentBegreber });
+  const eksamener = useQuery({ queryKey: ["eksamen"], queryFn: () => hentEksamener() });
 
   const startAfIDag = new Date();
   startAfIDag.setHours(0, 0, 0, 0);
@@ -74,9 +76,12 @@ function Dashboard() {
       .map((f) => f.forelaesning_id),
   );
 
-  const naesteEksamen = (fag.data ?? [])
-    .filter((f) => f.eksamensdato && new Date(f.eksamensdato).getTime() > Date.now())
-    .sort((a, b) => (a.eksamensdato! < b.eksamensdato! ? -1 : 1))[0];
+  const naesteEksamen = (eksamener.data ?? [])
+    .filter((e) => e.dato && new Date(e.dato).getTime() > Date.now())
+    .sort((a, b) => (a.dato! < b.dato! ? -1 : 1))[0];
+  const naesteEksamenFag = naesteEksamen
+    ? (fag.data ?? []).find((f) => f.id === naesteEksamen.fag_id)
+    : undefined;
 
   const samletEcts = (fag.data ?? []).reduce((sum, f) => sum + Number(f.ects ?? 0), 0);
 
@@ -88,23 +93,22 @@ function Dashboard() {
             <div>
               <p className="label-mono tracking-[0.18em]">Nærmeste eksamen</p>
               <h1 className="mt-3 max-w-[28ch] font-display text-3xl font-semibold leading-none tracking-tight sm:text-4xl">
-                {naesteEksamen.navn}
+                {naesteEksamenFag?.navn ?? "Fag"}
               </h1>
               <p className="mt-3 max-w-[42ch] text-base text-ink-soft">
-                {naesteEksamen.eksamensform ?? "Eksamen"} ·{" "}
-                {formatDato(naesteEksamen.eksamensdato)}
+                {naesteEksamen.navn ?? "Eksamen"} · {formatDato(naesteEksamen.dato)}
               </p>
             </div>
             <div className="flex shrink-0 items-stretch gap-3">
               <div className="rounded-xl bg-steel-soft px-5 py-4 text-center">
                 <p className="font-display text-4xl font-semibold leading-none text-steel">
-                  {dageTil(naesteEksamen.eksamensdato!)}
+                  {dageTil(naesteEksamen.dato!)}
                 </p>
                 <p className="label-mono mt-1">Dage</p>
               </div>
               <div className="rounded-xl bg-steel-soft px-5 py-4 text-center">
                 <p className="font-display text-4xl font-semibold leading-none text-steel">
-                  {Math.ceil(dageTil(naesteEksamen.eksamensdato!) / 7)}
+                  {Math.ceil(dageTil(naesteEksamen.dato!) / 7)}
                 </p>
                 <p className="label-mono mt-1">Uger</p>
               </div>

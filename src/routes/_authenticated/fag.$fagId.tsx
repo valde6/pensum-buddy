@@ -3,7 +3,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   formatDato,
+  formatEksamensdato,
   formatTidspunkt,
+  hentEksamener,
   hentFag,
   hentForelaesninger,
   hentKommentarer,
@@ -49,6 +51,10 @@ function FagSide() {
     queryKey: ["litteratur", fagId],
     queryFn: () => hentLitteratur(fagId),
   });
+  const eksamener = useQuery({
+    queryKey: ["eksamen", fagId],
+    queryFn: () => hentEksamener(fagId),
+  });
   const fremgang = useQuery({ queryKey: ["fremgang"], queryFn: hentMinFremgang });
   const kommentarer = useQuery({ queryKey: ["kommentar"], queryFn: hentKommentarer });
 
@@ -93,6 +99,31 @@ function FagSide() {
             <dd className="mt-1 text-base">{detteFag?.eksamensperiode ?? "—"}</dd>
           </div>
         </dl>
+      </section>
+
+      <section className="panel mt-6 p-6 sm:p-8">
+        <h2 className="label-mono mb-3 font-semibold">Eksamen</h2>
+        {eksamener.isLoading ? (
+          <p className="text-sm text-ink-soft">Indlæser eksamen…</p>
+        ) : (eksamener.data ?? []).length === 0 ? (
+          <p className="text-sm text-ink-soft">Ingen eksamen registreret endnu.</p>
+        ) : (
+          <ul className="space-y-3">
+            {(eksamener.data ?? []).map((e) => (
+              <li key={e.id} className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-medium">{e.navn ?? "Eksamen"}</p>
+                  <p className="mt-0.5 text-sm text-ink-soft">{formatEksamensdato(e.dato)}</p>
+                </div>
+                {e.vaegt != null && (
+                  <span className="label-mono shrink-0 rounded-full bg-steel-soft px-2.5 py-1 normal-case tracking-normal text-steel">
+                    {e.vaegt}%
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       {detteFag &&

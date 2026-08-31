@@ -35,6 +35,14 @@ export type Begreb = {
   definition: string | null;
 };
 
+export type Eksamen = {
+  id: string;
+  fag_id: string;
+  navn: string | null;
+  dato: string | null;
+  vaegt: number | null;
+};
+
 export type Litteratur = {
   id: string;
   fag_id: string;
@@ -112,6 +120,12 @@ export async function hentLitteratur(fagId?: string) {
   let q = supabase.from("litteratur").select("*").order("titel");
   if (fagId) q = q.eq("fag_id", fagId);
   return unwrap<Litteratur[]>(await q);
+}
+
+export async function hentEksamener(fagId?: string) {
+  let q = supabase.from("eksamen").select("*").order("dato", { nullsFirst: false });
+  if (fagId) q = q.eq("fag_id", fagId);
+  return unwrap<Eksamen[]>(await q);
 }
 
 export async function hentMinFremgang() {
@@ -243,6 +257,15 @@ export function formatDato(dato: string | null) {
   return new Date(dato).toLocaleDateString("da-DK", {
     day: "numeric",
     month: "short",
+    year: "numeric",
+  });
+}
+
+export function formatEksamensdato(dato: string | null) {
+  if (!dato) return "Dato endnu ikke fastsat";
+  return new Date(dato).toLocaleDateString("da-DK", {
+    day: "numeric",
+    month: "long",
     year: "numeric",
   });
 }

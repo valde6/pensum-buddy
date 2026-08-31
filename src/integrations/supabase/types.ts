@@ -109,6 +109,41 @@ export type Database = {
         }
         Relationships: []
       }
+      eksamen: {
+        Row: {
+          created_at: string
+          dato: string | null
+          fag_id: string
+          id: string
+          navn: string | null
+          vaegt: number | null
+        }
+        Insert: {
+          created_at?: string
+          dato?: string | null
+          fag_id: string
+          id?: string
+          navn?: string | null
+          vaegt?: number | null
+        }
+        Update: {
+          created_at?: string
+          dato?: string | null
+          fag_id?: string
+          id?: string
+          navn?: string | null
+          vaegt?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eksamen_fag_id_fkey"
+            columns: ["fag_id"]
+            isOneToOne: false
+            referencedRelation: "fag"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fag: {
         Row: {
           created_at: string
