@@ -147,8 +147,15 @@ function FagSide() {
 
               return (
                 <li key={e.id}>
-                  <details>
-                    <summary className="cursor-pointer">{indhold}</summary>
+                  <details className="group">
+                    <summary className="cursor-pointer list-none marker:content-[''] [&::-webkit-details-marker]:hidden">
+                      {indhold}
+                      <p className="mt-1 text-xs text-ink-soft">
+                        Se eksempler på opgaver{" "}
+                        <span className="group-open:hidden">→</span>
+                        <span className="hidden group-open:inline">↓</span>
+                      </p>
+                    </summary>
                     <div className="mt-4 space-y-6 border-t border-line pt-4">
                       {opgaver.map((o) => (
                         <div key={o.id}>
