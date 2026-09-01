@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import DOMPurify from "dompurify";
 import { formatDato, hentForelaesninger } from "@/lib/pensum";
 
-export const Route = createFileRoute("/_authenticated/fag/$fagId/noter/$forelaesningId")({
+export const Route = createFileRoute("/_authenticated/fag/$fagId_/noter/$forelaesningId")({
   head: () => ({
     meta: [
       { title: "Note — Pensummit" },

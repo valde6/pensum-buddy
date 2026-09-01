@@ -25,7 +25,7 @@ import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedFagFagIdRouteImport } from './routes/_authenticated/fag.$fagId'
 import { Route as ApiFagFagNavnForelaesningerRouteImport } from './routes/api/fag/$fagNavn/forelaesninger'
-import { Route as AuthenticatedFagFagIdNoterForelaesningIdRouteImport } from './routes/_authenticated/fag.$fagId.noter.$forelaesningId'
+import { Route as AuthenticatedFagFagIdNoterForelaesningIdRouteImport } from './routes/_authenticated/fag.$fagId_.noter.$forelaesningId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -112,9 +112,9 @@ const ApiFagFagNavnForelaesningerRoute =
   } as any)
 const AuthenticatedFagFagIdNoterForelaesningIdRoute =
   AuthenticatedFagFagIdNoterForelaesningIdRouteImport.update({
-    id: '/noter/$forelaesningId',
-    path: '/noter/$forelaesningId',
-    getParentRoute: () => AuthenticatedFagFagIdRoute,
+    id: '/fag/$fagId_/noter/$forelaesningId',
+    path: '/fag/$fagId/noter/$forelaesningId',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -131,7 +131,7 @@ export interface FileRoutesByFullPath {
   '/api/kalender': typeof ApiKalenderRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
-  '/fag/$fagId': typeof AuthenticatedFagFagIdRouteWithChildren
+  '/fag/$fagId': typeof AuthenticatedFagFagIdRoute
   '/api/fag/$fagNavn/forelaesninger': typeof ApiFagFagNavnForelaesningerRoute
   '/fag/$fagId/noter/$forelaesningId': typeof AuthenticatedFagFagIdNoterForelaesningIdRoute
 }
@@ -149,7 +149,7 @@ export interface FileRoutesByTo {
   '/api/kalender': typeof ApiKalenderRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
-  '/fag/$fagId': typeof AuthenticatedFagFagIdRouteWithChildren
+  '/fag/$fagId': typeof AuthenticatedFagFagIdRoute
   '/api/fag/$fagNavn/forelaesninger': typeof ApiFagFagNavnForelaesningerRoute
   '/fag/$fagId/noter/$forelaesningId': typeof AuthenticatedFagFagIdNoterForelaesningIdRoute
 }
@@ -169,9 +169,9 @@ export interface FileRoutesById {
   '/api/kalender': typeof ApiKalenderRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
-  '/_authenticated/fag/$fagId': typeof AuthenticatedFagFagIdRouteWithChildren
+  '/_authenticated/fag/$fagId': typeof AuthenticatedFagFagIdRoute
   '/api/fag/$fagNavn/forelaesninger': typeof ApiFagFagNavnForelaesningerRoute
-  '/_authenticated/fag/$fagId/noter/$forelaesningId': typeof AuthenticatedFagFagIdNoterForelaesningIdRoute
+  '/_authenticated/fag/$fagId_/noter/$forelaesningId': typeof AuthenticatedFagFagIdNoterForelaesningIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -228,7 +228,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/fag/$fagId'
     | '/api/fag/$fagNavn/forelaesninger'
-    | '/_authenticated/fag/$fagId/noter/$forelaesningId'
+    | '/_authenticated/fag/$fagId_/noter/$forelaesningId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -358,29 +358,15 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFagFagNavnForelaesningerRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/fag/$fagId/noter/$forelaesningId': {
-      id: '/_authenticated/fag/$fagId/noter/$forelaesningId'
-      path: '/noter/$forelaesningId'
+    '/_authenticated/fag/$fagId_/noter/$forelaesningId': {
+      id: '/_authenticated/fag/$fagId_/noter/$forelaesningId'
+      path: '/fag/$fagId/noter/$forelaesningId'
       fullPath: '/fag/$fagId/noter/$forelaesningId'
       preLoaderRoute: typeof AuthenticatedFagFagIdNoterForelaesningIdRouteImport
-      parentRoute: typeof AuthenticatedFagFagIdRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
-
-interface AuthenticatedFagFagIdRouteChildren {
-  AuthenticatedFagFagIdNoterForelaesningIdRoute: typeof AuthenticatedFagFagIdNoterForelaesningIdRoute
-}
-
-const AuthenticatedFagFagIdRouteChildren: AuthenticatedFagFagIdRouteChildren = {
-  AuthenticatedFagFagIdNoterForelaesningIdRoute:
-    AuthenticatedFagFagIdNoterForelaesningIdRoute,
-}
-
-const AuthenticatedFagFagIdRouteWithChildren =
-  AuthenticatedFagFagIdRoute._addFileChildren(
-    AuthenticatedFagFagIdRouteChildren,
-  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
@@ -388,7 +374,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedKalenderRoute: typeof AuthenticatedKalenderRoute
   AuthenticatedRepetitionRoute: typeof AuthenticatedRepetitionRoute
-  AuthenticatedFagFagIdRoute: typeof AuthenticatedFagFagIdRouteWithChildren
+  AuthenticatedFagFagIdRoute: typeof AuthenticatedFagFagIdRoute
+  AuthenticatedFagFagIdNoterForelaesningIdRoute: typeof AuthenticatedFagFagIdNoterForelaesningIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -397,7 +384,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedKalenderRoute: AuthenticatedKalenderRoute,
   AuthenticatedRepetitionRoute: AuthenticatedRepetitionRoute,
-  AuthenticatedFagFagIdRoute: AuthenticatedFagFagIdRouteWithChildren,
+  AuthenticatedFagFagIdRoute: AuthenticatedFagFagIdRoute,
+  AuthenticatedFagFagIdNoterForelaesningIdRoute:
+    AuthenticatedFagFagIdNoterForelaesningIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
