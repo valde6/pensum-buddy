@@ -6,6 +6,7 @@ import {
   formatEksamensdato,
   formatTidspunkt,
   hentEksamener,
+  hentEksamensopgaver,
   hentFag,
   hentForelaesninger,
   hentForelaesningsFremdrift,
@@ -56,6 +57,10 @@ function FagSide() {
   const eksamener = useQuery({
     queryKey: ["eksamen", fagId],
     queryFn: () => hentEksamener(fagId),
+  });
+  const eksamensopgaver = useQuery({
+    queryKey: ["eksamensopgave", fagId],
+    queryFn: () => hentEksamensopgaver(fagId),
   });
   const fremgang = useQuery({ queryKey: ["fremgang"], queryFn: hentMinFremgang });
   const kommentarer = useQuery({ queryKey: ["kommentar"], queryFn: hentKommentarer });
@@ -134,6 +139,36 @@ function FagSide() {
           </ul>
         )}
       </section>
+
+      {(eksamensopgaver.data ?? []).length > 0 && (
+        <details className="panel mt-6 p-6 sm:p-8">
+          <summary className="label-mono cursor-pointer font-semibold">
+            Eksempler på eksamensopgaver
+          </summary>
+          <div className="mt-4 space-y-6">
+            {(eksamensopgaver.data ?? []).map((o) => (
+              <div key={o.id}>
+                <p className="font-medium">{o.titel}</p>
+                <p className="label-mono mt-0.5 normal-case tracking-normal">
+                  {[o.periode, o.proeveform].filter(Boolean).join(" · ") || "—"}
+                </p>
+                <ul className="mt-3 space-y-3">
+                  {o.dele.map((d) => (
+                    <li key={d.id} className="border-t border-line pt-3 first:border-t-0 first:pt-0">
+                      <p className="text-sm font-medium">
+                        Opgave {d.nummer} ({d.vaegt ?? "—"}%): {d.emne}
+                      </p>
+                      {d.beskrivelse && (
+                        <p className="mt-1 text-sm text-ink-soft">{d.beskrivelse}</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
 
       {detteFag &&
         (detteFag.eksamensdetaljer || detteFag.laeringsmaal || detteFag.kursusindhold) && (

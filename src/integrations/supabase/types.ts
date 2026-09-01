@@ -144,6 +144,79 @@ export type Database = {
           },
         ]
       }
+      eksamensopgave: {
+        Row: {
+          created_at: string
+          fag_id: string
+          id: string
+          periode: string | null
+          proeveform: string | null
+          titel: string
+        }
+        Insert: {
+          created_at?: string
+          fag_id: string
+          id?: string
+          periode?: string | null
+          proeveform?: string | null
+          titel: string
+        }
+        Update: {
+          created_at?: string
+          fag_id?: string
+          id?: string
+          periode?: string | null
+          proeveform?: string | null
+          titel?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eksamensopgave_fag_id_fkey"
+            columns: ["fag_id"]
+            isOneToOne: false
+            referencedRelation: "fag"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eksamensopgave_del: {
+        Row: {
+          beskrivelse: string | null
+          created_at: string
+          eksamensopgave_id: string
+          emne: string
+          id: string
+          nummer: number
+          vaegt: number | null
+        }
+        Insert: {
+          beskrivelse?: string | null
+          created_at?: string
+          eksamensopgave_id: string
+          emne: string
+          id?: string
+          nummer: number
+          vaegt?: number | null
+        }
+        Update: {
+          beskrivelse?: string | null
+          created_at?: string
+          eksamensopgave_id?: string
+          emne?: string
+          id?: string
+          nummer?: number
+          vaegt?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eksamensopgave_del_eksamensopgave_id_fkey"
+            columns: ["eksamensopgave_id"]
+            isOneToOne: false
+            referencedRelation: "eksamensopgave"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fag: {
         Row: {
           created_at: string

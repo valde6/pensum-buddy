@@ -43,6 +43,25 @@ export type Eksamen = {
   vaegt: number | null;
 };
 
+export type Eksamensopgave = {
+  id: string;
+  fag_id: string;
+  titel: string;
+  periode: string | null;
+  proeveform: string | null;
+};
+
+export type EksamensopgaveDel = {
+  id: string;
+  eksamensopgave_id: string;
+  nummer: number;
+  vaegt: number | null;
+  emne: string;
+  beskrivelse: string | null;
+};
+
+export type EksamensopgaveMedDele = Eksamensopgave & { dele: EksamensopgaveDel[] };
+
 export type Litteratur = {
   id: string;
   fag_id: string;
@@ -132,6 +151,33 @@ export async function hentEksamener(fagId?: string) {
   let q = supabase.from("eksamen").select("*").order("dato", { nullsFirst: false });
   if (fagId) q = q.eq("fag_id", fagId);
   return unwrap<Eksamen[]>(await q);
+}
+
+export async function hentEksamensopgaver(fagId: string): Promise<EksamensopgaveMedDele[]> {
+  const opgaver = unwrap<Eksamensopgave[]>(
+    await supabase
+      .from("eksamensopgave")
+      .select("*")
+      .eq("fag_id", fagId)
+      .order("created_at"),
+  );
+  if (opgaver.length === 0) return [];
+
+  const dele = unwrap<EksamensopgaveDel[]>(
+    await supabase
+      .from("eksamensopgave_del")
+      .select("*")
+      .in(
+        "eksamensopgave_id",
+        opgaver.map((o) => o.id),
+      )
+      .order("nummer"),
+  );
+
+  return opgaver.map((o) => ({
+    ...o,
+    dele: dele.filter((d) => d.eksamensopgave_id === o.id),
+  }));
 }
 
 export async function hentMinFremgang() {
