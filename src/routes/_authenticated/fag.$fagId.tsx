@@ -59,8 +59,8 @@ function FagSide() {
     queryFn: () => hentEksamener(fagId),
   });
   const eksamensopgaver = useQuery({
-    queryKey: ["eksamensopgave", fagId],
-    queryFn: () => hentEksamensopgaver(fagId),
+    queryKey: ["eksamensopgave"],
+    queryFn: hentEksamensopgaver,
   });
   const fremgang = useQuery({ queryKey: ["fremgang"], queryFn: hentMinFremgang });
   const kommentarer = useQuery({ queryKey: ["kommentar"], queryFn: hentKommentarer });
@@ -85,6 +85,8 @@ function FagSide() {
     (fremgang.data ?? []).find((f) => f.forelaesning_id === id)?.status ?? "ikke startet";
   const kommentarerFor = (id: string) =>
     (kommentarer.data ?? []).filter((k) => k.forelaesning_id === id);
+  const eksamensopgaverFor = (eksamenId: string) =>
+    (eksamensopgaver.data ?? []).filter((o) => o.eksamen_id === eksamenId);
 
   return (
     <>
@@ -123,52 +125,62 @@ function FagSide() {
           <p className="text-sm text-ink-soft">Ingen eksamen registreret endnu.</p>
         ) : (
           <ul className="space-y-3">
-            {(eksamener.data ?? []).map((e) => (
-              <li key={e.id} className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="font-medium">{e.navn ?? "Eksamen"}</p>
-                  <p className="mt-0.5 text-sm text-ink-soft">{formatEksamensdato(e.dato)}</p>
+            {(eksamener.data ?? []).map((e) => {
+              const opgaver = eksamensopgaverFor(e.id);
+              const indhold = (
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="font-medium">{e.navn ?? "Eksamen"}</p>
+                    <p className="mt-0.5 text-sm text-ink-soft">{formatEksamensdato(e.dato)}</p>
+                  </div>
+                  {e.vaegt != null && (
+                    <span className="label-mono shrink-0 rounded-full bg-steel-soft px-2.5 py-1 normal-case tracking-normal text-steel">
+                      {e.vaegt}%
+                    </span>
+                  )}
                 </div>
-                {e.vaegt != null && (
-                  <span className="label-mono shrink-0 rounded-full bg-steel-soft px-2.5 py-1 normal-case tracking-normal text-steel">
-                    {e.vaegt}%
-                  </span>
-                )}
-              </li>
-            ))}
+              );
+
+              if (opgaver.length === 0) {
+                return <li key={e.id}>{indhold}</li>;
+              }
+
+              return (
+                <li key={e.id}>
+                  <details>
+                    <summary className="cursor-pointer">{indhold}</summary>
+                    <div className="mt-4 space-y-6 border-t border-line pt-4">
+                      {opgaver.map((o) => (
+                        <div key={o.id}>
+                          <p className="font-medium">{o.titel}</p>
+                          <p className="label-mono mt-0.5 normal-case tracking-normal">
+                            {[o.periode, o.proeveform].filter(Boolean).join(" · ") || "—"}
+                          </p>
+                          <ul className="mt-3 space-y-3">
+                            {o.dele.map((d) => (
+                              <li
+                                key={d.id}
+                                className="border-t border-line pt-3 first:border-t-0 first:pt-0"
+                              >
+                                <p className="text-sm font-medium">
+                                  Opgave {d.nummer} ({d.vaegt ?? "—"}%): {d.emne}
+                                </p>
+                                {d.beskrivelse && (
+                                  <p className="mt-1 text-sm text-ink-soft">{d.beskrivelse}</p>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>
-
-      {(eksamensopgaver.data ?? []).length > 0 && (
-        <details className="panel mt-6 p-6 sm:p-8">
-          <summary className="label-mono cursor-pointer font-semibold">
-            Eksempler på eksamensopgaver
-          </summary>
-          <div className="mt-4 space-y-6">
-            {(eksamensopgaver.data ?? []).map((o) => (
-              <div key={o.id}>
-                <p className="font-medium">{o.titel}</p>
-                <p className="label-mono mt-0.5 normal-case tracking-normal">
-                  {[o.periode, o.proeveform].filter(Boolean).join(" · ") || "—"}
-                </p>
-                <ul className="mt-3 space-y-3">
-                  {o.dele.map((d) => (
-                    <li key={d.id} className="border-t border-line pt-3 first:border-t-0 first:pt-0">
-                      <p className="text-sm font-medium">
-                        Opgave {d.nummer} ({d.vaegt ?? "—"}%): {d.emne}
-                      </p>
-                      {d.beskrivelse && (
-                        <p className="mt-1 text-sm text-ink-soft">{d.beskrivelse}</p>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </details>
-      )}
 
       {detteFag &&
         (detteFag.eksamensdetaljer || detteFag.laeringsmaal || detteFag.kursusindhold) && (

@@ -1,6 +1,6 @@
 CREATE TABLE public.eksamensopgave (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  fag_id uuid NOT NULL REFERENCES public.fag(id) ON DELETE CASCADE,
+  eksamen_id uuid NOT NULL REFERENCES public.eksamen(id) ON DELETE CASCADE,
   titel text NOT NULL,
   periode text,
   proeveform text,

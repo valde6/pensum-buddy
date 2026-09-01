@@ -147,7 +147,7 @@ export type Database = {
       eksamensopgave: {
         Row: {
           created_at: string
-          fag_id: string
+          eksamen_id: string
           id: string
           periode: string | null
           proeveform: string | null
@@ -155,7 +155,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          fag_id: string
+          eksamen_id: string
           id?: string
           periode?: string | null
           proeveform?: string | null
@@ -163,7 +163,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          fag_id?: string
+          eksamen_id?: string
           id?: string
           periode?: string | null
           proeveform?: string | null
@@ -171,10 +171,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "eksamensopgave_fag_id_fkey"
-            columns: ["fag_id"]
+            foreignKeyName: "eksamensopgave_eksamen_id_fkey"
+            columns: ["eksamen_id"]
             isOneToOne: false
-            referencedRelation: "fag"
+            referencedRelation: "eksamen"
             referencedColumns: ["id"]
           },
         ]

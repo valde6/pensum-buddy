@@ -45,7 +45,7 @@ export type Eksamen = {
 
 export type Eksamensopgave = {
   id: string;
-  fag_id: string;
+  eksamen_id: string;
   titel: string;
   periode: string | null;
   proeveform: string | null;
@@ -153,13 +153,12 @@ export async function hentEksamener(fagId?: string) {
   return unwrap<Eksamen[]>(await q);
 }
 
-export async function hentEksamensopgaver(fagId: string): Promise<EksamensopgaveMedDele[]> {
+// Henter alle eksamensopgaver (på tværs af eksamen) — fagsiden grupperer dem
+// selv efter eksamen_id og slår op pr. eksamen-række, samme mønster som
+// hentKommentarer().
+export async function hentEksamensopgaver(): Promise<EksamensopgaveMedDele[]> {
   const opgaver = unwrap<Eksamensopgave[]>(
-    await supabase
-      .from("eksamensopgave")
-      .select("*")
-      .eq("fag_id", fagId)
-      .order("created_at"),
+    await supabase.from("eksamensopgave").select("*").order("created_at"),
   );
   if (opgaver.length === 0) return [];
 
