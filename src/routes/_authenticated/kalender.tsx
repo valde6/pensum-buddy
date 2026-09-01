@@ -52,6 +52,15 @@ function KalenderSide() {
     grupper.get(dagNoegle)!.push(b);
   }
 
+  function dagOverskrift(dagNoegle: string, eksempelIso: string) {
+    const iDagNoegle = new Date().toISOString().slice(0, 10);
+    const iMorgenNoegle = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+    if (dagNoegle === iDagNoegle) return "I dag";
+    if (dagNoegle === iMorgenNoegle) return "I morgen";
+    const dag = formatDag(eksempelIso);
+    return dag.charAt(0).toUpperCase() + dag.slice(1);
+  }
+
   return (
     <>
       <h1 className="font-display text-3xl font-semibold leading-none tracking-tight">
@@ -85,10 +94,12 @@ function KalenderSide() {
           )}
 
           {[...grupper.entries()].map(([dagNoegle, begivenheder]) => (
-            <div key={dagNoegle} className="mt-8 first:mt-6">
-              <h2 className="label-mono mb-3 font-semibold">
-                {formatDag(begivenheder[0]!.start)}
-              </h2>
+            <section key={dagNoegle} className="mt-8 first:mt-6">
+              <div className="mb-3 inline-flex items-baseline gap-2 rounded-full bg-steel-soft px-3.5 py-1.5">
+                <span className="font-display text-sm font-semibold tracking-tight text-steel">
+                  {dagOverskrift(dagNoegle, begivenheder[0]!.start)}
+                </span>
+              </div>
               <div className="panel divide-y divide-line overflow-hidden">
                 {begivenheder.map((b) => {
                   const harNote = b.forelaesningId ? harNoteFor(b.forelaesningId) : false;
@@ -125,7 +136,7 @@ function KalenderSide() {
                   );
                 })}
               </div>
-            </div>
+            </section>
           ))}
         </>
       )}
