@@ -43,6 +43,7 @@
   --color-accent-foreground: var(--sage);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--surface);
+  --color-destructive-soft: var(--destructive-soft);
   --color-border: var(--line);
   --color-input: var(--line);
   --color-ring: var(--steel);
@@ -63,6 +64,7 @@
   --clay: oklch(0.567 0.078 47);
   --clay-soft: oklch(0.933 0.026 62);
   --destructive: oklch(0.52 0.16 25);
+  --destructive-soft: oklch(0.93 0.035 25);
 
   --background: var(--paper);
   --foreground: var(--ink);
@@ -81,6 +83,7 @@
   --clay: oklch(0.68 0.09 47);
   --clay-soft: oklch(0.28 0.045 47);
   --destructive: oklch(0.62 0.16 25);
+  --destructive-soft: oklch(0.28 0.045 25);
 }
 
 @layer base {
@@ -108,4 +111,67 @@
   border-radius: var(--radius-xl);
   background-color: var(--color-surface);
   box-shadow: 0 0 0 1px oklch(0 0 0 / 5%);
+}
+
+/* Studienoter: gør quiz-markup fra note_html interaktivt (se
+   fag.$fagId_.noter.$forelaesningId.tsx) og giver mermaid-diagrammer luft. */
+.studienote .mermaid {
+  margin: 1.5em 0;
+  display: flex;
+  justify-content: center;
+}
+
+.studienote .quiz-q {
+  margin: 1em 0;
+}
+
+.studienote .quiz-q button.opt {
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-line);
+  background-color: var(--color-surface);
+  padding: 0.5em 0.9em;
+  font-size: 0.9em;
+  color: var(--color-ink);
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+
+.studienote .quiz-q button.opt:hover:not(:disabled) {
+  border-color: var(--color-steel);
+}
+
+.studienote .quiz-q button.opt:disabled {
+  cursor: default;
+}
+
+.studienote .quiz-q button.opt.correct {
+  border-color: var(--color-sage);
+  background-color: var(--color-sage-soft);
+  color: var(--color-sage);
+}
+
+.studienote .quiz-q button.opt.wrong {
+  border-color: var(--color-destructive);
+  background-color: var(--color-destructive-soft);
+  color: var(--color-destructive);
+}
+
+.studienote .quiz-score {
+  margin-top: 0.75em;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-ink-soft);
+}
+
+.studienote .quiz-restart {
+  margin-top: 0.75em;
+  cursor: pointer;
+  border-radius: 999px;
+  border: 1px solid var(--color-line);
+  background-color: var(--color-steel-soft);
+  color: var(--color-steel);
+  padding: 0.4em 1em;
+  font-size: 0.8rem;
 }
