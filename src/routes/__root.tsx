@@ -106,7 +106,7 @@ const TEMA_SCRIPT = `(function(){try{var t=localStorage.getItem("pensummit-theme
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* No-flash tema-script: kører synkront før appen renderer, så siden
             aldrig blinker forkert tema ved indlæsning. Hold i sync med
