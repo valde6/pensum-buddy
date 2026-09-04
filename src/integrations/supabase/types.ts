@@ -367,6 +367,62 @@ export type Database = {
           },
         ]
       }
+      lektionsplan: {
+        Row: {
+          created_at: string
+          dato: string | null
+          fag_id: string
+          formaal: string | null
+          id: string
+          laeringsmaal: string | null
+          pensum: string | null
+          raekkefolge: number
+          tidspunkt: string | null
+          titel: string
+          type: string | null
+          uge: string | null
+          underviser: string | null
+        }
+        Insert: {
+          created_at?: string
+          dato?: string | null
+          fag_id: string
+          formaal?: string | null
+          id?: string
+          laeringsmaal?: string | null
+          pensum?: string | null
+          raekkefolge: number
+          tidspunkt?: string | null
+          titel: string
+          type?: string | null
+          uge?: string | null
+          underviser?: string | null
+        }
+        Update: {
+          created_at?: string
+          dato?: string | null
+          fag_id?: string
+          formaal?: string | null
+          id?: string
+          laeringsmaal?: string | null
+          pensum?: string | null
+          raekkefolge?: number
+          tidspunkt?: string | null
+          titel?: string
+          type?: string | null
+          uge?: string | null
+          underviser?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lektionsplan_fag_id_fkey"
+            columns: ["fag_id"]
+            isOneToOne: false
+            referencedRelation: "fag"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       litteratur: {
         Row: {
           created_at: string

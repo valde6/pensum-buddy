@@ -71,6 +71,21 @@ export type Litteratur = {
   url: string | null;
 };
 
+export type Lektionsplan = {
+  id: string;
+  fag_id: string;
+  raekkefolge: number;
+  uge: string | null;
+  dato: string | null;
+  tidspunkt: string | null;
+  underviser: string | null;
+  titel: string;
+  type: string | null;
+  formaal: string | null;
+  pensum: string | null;
+  laeringsmaal: string | null;
+};
+
 export type Fremgang = {
   id: string;
   bruger_id: string;
@@ -145,6 +160,16 @@ export async function hentLitteratur(fagId?: string) {
   let q = supabase.from("litteratur").select("*").order("titel");
   if (fagId) q = q.eq("fag_id", fagId);
   return unwrap<Litteratur[]>(await q);
+}
+
+export async function hentLektionsplan(fagId: string) {
+  return unwrap<Lektionsplan[]>(
+    await supabase
+      .from("lektionsplan")
+      .select("*")
+      .eq("fag_id", fagId)
+      .order("raekkefolge"),
+  );
 }
 
 export async function hentEksamener(fagId?: string) {

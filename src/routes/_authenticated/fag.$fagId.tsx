@@ -11,6 +11,7 @@ import {
   hentForelaesninger,
   hentForelaesningsFremdrift,
   hentKommentarer,
+  hentLektionsplan,
   hentLitteratur,
   hentMinFremgang,
   saetStatus,
@@ -61,6 +62,10 @@ function FagSide() {
   const eksamensopgaver = useQuery({
     queryKey: ["eksamensopgave"],
     queryFn: hentEksamensopgaver,
+  });
+  const lektionsplan = useQuery({
+    queryKey: ["lektionsplan", fagId],
+    queryFn: () => hentLektionsplan(fagId),
   });
   const fremgang = useQuery({ queryKey: ["fremgang"], queryFn: hentMinFremgang });
   const kommentarer = useQuery({ queryKey: ["kommentar"], queryFn: hentKommentarer });
@@ -188,6 +193,55 @@ function FagSide() {
           </ul>
         )}
       </section>
+
+      {(lektionsplan.data ?? []).length > 0 && (
+        <details className="group panel mt-6 p-6 sm:p-8">
+          <summary className="cursor-pointer list-none marker:content-[''] [&::-webkit-details-marker]:hidden">
+            <h2 className="label-mono font-semibold">Undervisningsplan</h2>
+            <p className="mt-1 text-xs text-ink-soft">
+              Se lektionsplan{" "}
+              <span className="group-open:hidden">→</span>
+              <span className="hidden group-open:inline">↓</span>
+            </p>
+          </summary>
+          <div className="mt-4 divide-y divide-line border-t border-line">
+            {(lektionsplan.data ?? []).map((l) => {
+              const tidsInfo = [l.uge, l.dato ? formatDato(l.dato) : null, l.tidspunkt]
+                .filter(Boolean)
+                .join(" · ");
+              return (
+                <div key={l.id} className="py-3 first:pt-3">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-medium">{l.titel}</p>
+                      {l.type && (
+                        <span className="label-mono rounded-full bg-steel-soft px-2 py-0.5 normal-case tracking-normal text-steel">
+                          {l.type}
+                        </span>
+                      )}
+                      {l.laeringsmaal && (
+                        <span className="label-mono rounded-full bg-sage-soft px-2 py-0.5 normal-case tracking-normal text-sage">
+                          {l.laeringsmaal}
+                        </span>
+                      )}
+                    </div>
+                    {tidsInfo && (
+                      <p className="label-mono shrink-0 normal-case tracking-normal text-ink-soft">
+                        {tidsInfo}
+                      </p>
+                    )}
+                  </div>
+                  {l.underviser && (
+                    <p className="mt-1 text-sm text-ink-soft">Underviser: {l.underviser}</p>
+                  )}
+                  {l.formaal && <p className="mt-1 text-sm text-ink-soft">{l.formaal}</p>}
+                  {l.pensum && <p className="mt-1 text-sm text-ink-soft">Pensum: {l.pensum}</p>}
+                </div>
+              );
+            })}
+          </div>
+        </details>
+      )}
 
       {detteFag &&
         (detteFag.eksamensdetaljer || detteFag.laeringsmaal || detteFag.kursusindhold) && (
