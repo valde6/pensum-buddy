@@ -350,6 +350,30 @@ export async function hentForelaesningsFremdrift(fagId: string): Promise<Forelae
   return { tilknyttet: true, forelaesninger, ovelser };
 }
 
+// Semesterets samlede fremdrift på tværs af alle fag — udledt af kalenderen på
+// samme måde som per-fag-versionen ovenfor, bare uden fagId-filtrering. Laver
+// bevidst sit eget kald til /api/kalender i stedet for at genbruge en cached
+// response: TanStack Querys cache-nøgler ("forelaesningsFremdrift", fagId) og
+// ("samletFremdrift") er forskellige og deler ikke response body.
+export async function hentSamletFremdrift(): Promise<ForelaesningsFremdrift> {
+  const svar = await kaldKalenderApi(`/api/kalender?fra=${encodeURIComponent("2026-01-01")}`);
+  if (!svar.harKalender) return { tilknyttet: false };
+
+  const iDagKl0000 = new Date();
+  iDagKl0000.setHours(0, 0, 0, 0);
+
+  const forelaesninger = taelFremdrift(
+    svar.begivenheder.filter((b) => b.spor === "LA"),
+    iDagKl0000,
+  );
+  const ovelser = taelFremdrift(
+    svar.begivenheder.filter((b) => b.spor === "XB"),
+    iDagKl0000,
+  );
+
+  return { tilknyttet: true, forelaesninger, ovelser };
+}
+
 export async function tilfoejForelaesning(input: {
   fag_id: string;
   nummer: number;

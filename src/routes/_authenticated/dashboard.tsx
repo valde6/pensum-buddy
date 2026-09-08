@@ -11,6 +11,7 @@ import {
   hentForelaesningsFremdrift,
   hentKalenderFra,
   hentLitteratur,
+  hentSamletFremdrift,
   type Fag,
 } from "@/lib/pensum";
 import { eksporterPensumSomPdf } from "@/lib/pensumPdf";
@@ -45,6 +46,10 @@ function Dashboard() {
   const litteratur = useQuery({ queryKey: ["litteratur"], queryFn: () => hentLitteratur() });
   const begreber = useQuery({ queryKey: ["begreb"], queryFn: hentBegreber });
   const eksamener = useQuery({ queryKey: ["eksamen"], queryFn: () => hentEksamener() });
+  const samletFremdrift = useQuery({
+    queryKey: ["samletFremdrift"],
+    queryFn: hentSamletFremdrift,
+  });
 
   const startAfIDag = new Date();
   startAfIDag.setHours(0, 0, 0, 0);
@@ -117,6 +122,17 @@ function Dashboard() {
             </p>
           </div>
         )}
+      </section>
+
+      <section className="panel mt-6 p-6 sm:p-8">
+        <p className="label-mono tracking-[0.18em]">Semesteret samlet</p>
+        <div className="mt-4">
+          <FremdriftVisning
+            fremdrift={samletFremdrift.data}
+            isLoading={samletFremdrift.isLoading}
+            farve="bg-steel"
+          />
+        </div>
       </section>
 
       <section className="panel mt-6 p-6 sm:p-8">
