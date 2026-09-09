@@ -137,6 +137,27 @@ export type ForelaesningsFremdrift =
   | { tilknyttet: false }
   | { tilknyttet: true; forelaesninger: FremdriftTal; ovelser: FremdriftTal };
 
+export type CanvasOpgave = {
+  id: string;
+  fag_id: string;
+  canvas_assignment_id: string;
+  titel: string;
+  beskrivelse_html: string | null;
+  forfaldsdato: string | null;
+  url_til_canvas: string | null;
+  submission_types: string[] | null;
+  submission_state: string | null;
+  submitted_at: string | null;
+  late: boolean;
+  missing: boolean;
+  type: string;
+  fag: { navn: string } | null;
+};
+
+export type CanvasOpgaveSvar =
+  | { harToken: false }
+  | { harToken: true; opgaver: CanvasOpgave[] };
+
 function unwrap<T>({ data, error }: { data: T | null; error: { message: string } | null }): T {
   if (error) throw new Error(error.message);
   return (data ?? []) as T;
@@ -372,6 +393,32 @@ export async function hentSamletFremdrift(): Promise<ForelaesningsFremdrift> {
   );
 
   return { tilknyttet: true, forelaesninger, ovelser };
+}
+
+// Samme auth-mønster som kaldKalenderApi, men mod /api/canvas-opgaver.
+async function kaldCanvasApi(url: string, init?: RequestInit): Promise<Response> {
+  const { data: auth } = await supabase.auth.getSession();
+  const token = auth.session?.access_token;
+  if (!token) throw new Error("Ingen bruger");
+  return fetch(url, {
+    ...init,
+    headers: { Authorization: `Bearer ${token}`, ...init?.headers },
+  });
+}
+
+export async function hentCanvasOpgaver(): Promise<CanvasOpgaveSvar> {
+  const res = await kaldCanvasApi("/api/canvas-opgaver");
+  if (!res.ok) throw new Error(`Canvas-API fejlede (${res.status})`);
+  return res.json() as Promise<CanvasOpgaveSvar>;
+}
+
+export async function gemCanvasToken(token: string): Promise<void> {
+  const res = await kaldCanvasApi("/api/canvas-opgaver", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+  if (!res.ok) throw new Error("Kunne ikke gemme Canvas-token");
 }
 
 export async function tilfoejForelaesning(input: {

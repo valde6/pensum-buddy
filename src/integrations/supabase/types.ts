@@ -88,6 +88,24 @@ export type Database = {
           },
         ]
       }
+      bruger_canvas_token: {
+        Row: {
+          bruger_id: string
+          opdateret_dato: string
+          token: string
+        }
+        Insert: {
+          bruger_id: string
+          opdateret_dato?: string
+          token: string
+        }
+        Update: {
+          bruger_id?: string
+          opdateret_dato?: string
+          token?: string
+        }
+        Relationships: []
+      }
       bruger_kalender: {
         Row: {
           bruger_id: string
@@ -105,6 +123,77 @@ export type Database = {
           opdateret_dato?: string
         }
         Relationships: []
+      }
+      canvas_opgave: {
+        Row: {
+          beskrivelse_html: string | null
+          canvas_assignment_id: string
+          canvas_kursus_id: string
+          created_at: string
+          fag_id: string
+          forfaldsdato: string | null
+          id: string
+          late: boolean
+          missing: boolean
+          points: number | null
+          sidst_synkroniseret: string
+          submission_state: string | null
+          submission_types: string[] | null
+          submitted_at: string | null
+          tilgaengelig_fra: string | null
+          titel: string
+          type: string | null
+          url_til_canvas: string | null
+        }
+        Insert: {
+          beskrivelse_html?: string | null
+          canvas_assignment_id: string
+          canvas_kursus_id: string
+          created_at?: string
+          fag_id: string
+          forfaldsdato?: string | null
+          id?: string
+          late?: boolean
+          missing?: boolean
+          points?: number | null
+          sidst_synkroniseret?: string
+          submission_state?: string | null
+          submission_types?: string[] | null
+          submitted_at?: string | null
+          tilgaengelig_fra?: string | null
+          titel: string
+          type?: string | null
+          url_til_canvas?: string | null
+        }
+        Update: {
+          beskrivelse_html?: string | null
+          canvas_assignment_id?: string
+          canvas_kursus_id?: string
+          created_at?: string
+          fag_id?: string
+          forfaldsdato?: string | null
+          id?: string
+          late?: boolean
+          missing?: boolean
+          points?: number | null
+          sidst_synkroniseret?: string
+          submission_state?: string | null
+          submission_types?: string[] | null
+          submitted_at?: string | null
+          tilgaengelig_fra?: string | null
+          titel?: string
+          type?: string | null
+          url_til_canvas?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "canvas_opgave_fag_id_fkey"
+            columns: ["fag_id"]
+            isOneToOne: false
+            referencedRelation: "fag"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       eksamen: {
         Row: {
@@ -216,6 +305,7 @@ export type Database = {
       }
       fag: {
         Row: {
+          canvas_kursus_id: string | null
           created_at: string
           ects: number
           eksamensdato: string | null
@@ -229,6 +319,7 @@ export type Database = {
           semester: string | null
         }
         Insert: {
+          canvas_kursus_id?: string | null
           created_at?: string
           ects?: number
           eksamensdato?: string | null
@@ -242,6 +333,7 @@ export type Database = {
           semester?: string | null
         }
         Update: {
+          canvas_kursus_id?: string | null
           created_at?: string
           ects?: number
           eksamensdato?: string | null

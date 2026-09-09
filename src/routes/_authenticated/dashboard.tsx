@@ -5,6 +5,7 @@ import {
   formatDato,
   formatKlokkeslaet,
   hentBegreber,
+  hentCanvasOpgaver,
   hentEksamener,
   hentFag,
   hentForelaesninger,
@@ -12,6 +13,7 @@ import {
   hentKalenderFra,
   hentLitteratur,
   hentSamletFremdrift,
+  type CanvasOpgave,
   type Fag,
 } from "@/lib/pensum";
 import { eksporterPensumSomPdf } from "@/lib/pensumPdf";
@@ -50,6 +52,10 @@ function Dashboard() {
     queryKey: ["samletFremdrift"],
     queryFn: hentSamletFremdrift,
   });
+  const canvasOpgaver = useQuery({
+    queryKey: ["canvasOpgaver"],
+    queryFn: hentCanvasOpgaver,
+  });
 
   const startAfIDag = new Date();
   startAfIDag.setHours(0, 0, 0, 0);
@@ -84,6 +90,18 @@ function Dashboard() {
     : undefined;
 
   const samletEcts = (fag.data ?? []).reduce((sum, f) => sum + Number(f.ects ?? 0), 0);
+
+  const kommendeOpgaver: CanvasOpgave[] = canvasOpgaver.data?.harToken
+    ? canvasOpgaver.data.opgaver
+        .filter(
+          (o) =>
+            o.submission_state !== "submitted" &&
+            o.submission_state !== "graded" &&
+            o.forfaldsdato &&
+            new Date(o.forfaldsdato).getTime() > Date.now(),
+        )
+        .slice(0, 6)
+    : [];
 
   return (
     <>
@@ -167,6 +185,67 @@ function Dashboard() {
                 <span className="font-medium">{b.fagNavn}</span>
                 <span className="text-ink-soft">{b.type}</span>
                 <span className="text-ink-soft">· {b.lokale ?? "Online"}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="panel mt-6 p-6 sm:p-8">
+        <p className="label-mono tracking-[0.18em]">Kommende afleveringer</p>
+        {canvasOpgaver.isLoading ? (
+          <p className="mt-3 text-sm text-ink-soft">Indlæser opgaver…</p>
+        ) : !canvasOpgaver.data?.harToken ? (
+          <p className="mt-3 text-sm text-ink-soft">
+            <Link
+              to="/kalender"
+              className="font-medium text-steel underline-offset-4 hover:underline"
+            >
+              Tilknyt Canvas-token
+            </Link>{" "}
+            for at se kommende afleveringer.
+          </p>
+        ) : kommendeOpgaver.length === 0 ? (
+          <p className="mt-3 text-sm text-ink-soft">
+            Ingen kommende afleveringer — godt gået!
+          </p>
+        ) : (
+          <ul className="mt-3 divide-y divide-line">
+            {kommendeOpgaver.map((o) => (
+              <li
+                key={o.canvas_assignment_id}
+                className="flex items-baseline justify-between gap-4 py-2.5"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{o.titel}</p>
+                  <p className="mt-0.5 text-xs text-ink-soft">
+                    {o.fag?.navn ?? "Ukendt fag"}
+                    {o.missing && <span className="ml-2 text-clay">· Mangler</span>}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <span className="label-mono normal-case tracking-normal text-ink-soft">
+                    {o.forfaldsdato
+                      ? new Date(o.forfaldsdato).toLocaleDateString("da-DK", {
+                          day: "numeric",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "Ingen dato"}
+                  </span>
+                  {o.url_til_canvas && (
+                    <a
+                      href={o.url_til_canvas}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="label-mono shrink-0 rounded-full bg-steel-soft px-2.5 py-1 normal-case tracking-normal text-steel hover:bg-steel/20"
+                    >
+                      Åbn
+                    </a>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
