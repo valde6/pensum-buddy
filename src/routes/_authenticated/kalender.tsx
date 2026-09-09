@@ -141,6 +141,8 @@ function KalenderSide() {
           ))}
         </>
       )}
+
+      <CanvasTokenForm />
     </>
   );
 }
@@ -161,44 +163,40 @@ function IngenKalenderEndnu() {
   });
 
   return (
-    <>
-      <div className="panel mt-6 max-w-xl space-y-4 p-6 sm:p-8">
-        <p className="text-sm leading-relaxed text-ink-soft">
-          Et "subscribe to calendar"-link er en privat webadresse til dit personlige CBS-skema.
-          CBS' skemasystem stiller linket til rådighed under en knap som "Subscribe" eller
-          "Abonnér på kalender" — kopiér adressen derfra (den ender typisk på{" "}
-          <span className="font-mono">.ics</span>) og indsæt den her.
-        </p>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            setBesked(null);
-            const url = icsUrl.trim();
-            if (url) gem.mutate(url);
-          }}
-          className="flex flex-col gap-3 sm:flex-row"
+    <div className="panel mt-6 max-w-xl space-y-4 p-6 sm:p-8">
+      <p className="text-sm leading-relaxed text-ink-soft">
+        Et "subscribe to calendar"-link er en privat webadresse til dit personlige CBS-skema.
+        CBS' skemasystem stiller linket til rådighed under en knap som "Subscribe" eller
+        "Abonnér på kalender" — kopiér adressen derfra (den ender typisk på{" "}
+        <span className="font-mono">.ics</span>) og indsæt den her.
+      </p>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          setBesked(null);
+          const url = icsUrl.trim();
+          if (url) gem.mutate(url);
+        }}
+        className="flex flex-col gap-3 sm:flex-row"
+      >
+        <input
+          type="url"
+          required
+          value={icsUrl}
+          onChange={(e) => setIcsUrl(e.target.value)}
+          placeholder="https://…ics"
+          className="w-full flex-1 rounded-lg bg-paper px-3 py-2.5 text-sm ring-1 ring-line focus:outline-none focus:ring-2 focus:ring-steel/40"
+        />
+        <button
+          type="submit"
+          disabled={gem.isPending || !icsUrl.trim()}
+          className="label-mono shrink-0 rounded-full bg-steel-soft px-4 py-2.5 normal-case tracking-normal disabled:opacity-60"
         >
-          <input
-            type="url"
-            required
-            value={icsUrl}
-            onChange={(e) => setIcsUrl(e.target.value)}
-            placeholder="https://…ics"
-            className="w-full flex-1 rounded-lg bg-paper px-3 py-2.5 text-sm ring-1 ring-line focus:outline-none focus:ring-2 focus:ring-steel/40"
-          />
-          <button
-            type="submit"
-            disabled={gem.isPending || !icsUrl.trim()}
-            className="label-mono shrink-0 rounded-full bg-steel-soft px-4 py-2.5 normal-case tracking-normal disabled:opacity-60"
-          >
-            {gem.isPending ? "Gemmer…" : "Gem kalender"}
-          </button>
-        </form>
-        {besked && <p className="text-sm text-ink-soft">{besked}</p>}
-      </div>
-
-      <CanvasTokenForm />
-    </>
+          {gem.isPending ? "Gemmer…" : "Gem kalender"}
+        </button>
+      </form>
+      {besked && <p className="text-sm text-ink-soft">{besked}</p>}
+    </div>
   );
 }
 
