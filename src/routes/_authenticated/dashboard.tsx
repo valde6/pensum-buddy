@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   dageTil,
   formatDato,
@@ -43,6 +43,7 @@ const barFarver = ["bg-steel", "bg-sage", "bg-clay"];
 
 function Dashboard() {
   const queryClient = useQueryClient();
+  const [visAlleOpgaver, setVisAlleOpgaver] = useState(false);
 
   useEffect(() => {
     syncCanvasOpgaver()
@@ -112,6 +113,7 @@ function Dashboard() {
         )
         .slice(0, 6)
     : [];
+  const vistOpgaver = visAlleOpgaver ? kommendeOpgaver : kommendeOpgaver.slice(0, 3);
 
   return (
     <>
@@ -221,7 +223,7 @@ function Dashboard() {
           </p>
         ) : (
           <ul className="mt-3 divide-y divide-line">
-            {kommendeOpgaver.map((o) => (
+            {vistOpgaver.map((o) => (
               <li
                 key={o.canvas_assignment_id}
                 className="flex items-baseline justify-between gap-4 py-2.5"
@@ -259,6 +261,14 @@ function Dashboard() {
               </li>
             ))}
           </ul>
+        )}
+        {kommendeOpgaver.length > 3 && (
+          <button
+            onClick={() => setVisAlleOpgaver((v) => !v)}
+            className="mt-3 text-sm font-medium text-steel underline-offset-4 hover:underline"
+          >
+            {visAlleOpgaver ? "Vis færre" : `Vis alle ${kommendeOpgaver.length} opgaver`}
+          </button>
         )}
       </section>
 

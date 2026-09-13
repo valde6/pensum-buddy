@@ -47,6 +47,7 @@ export const Route = createFileRoute("/_authenticated/fag/$fagId")({
 function FagSide() {
   const { fagId } = Route.useParams();
   const queryClient = useQueryClient();
+  const [visAlleOpgaverFag, setVisAlleOpgaverFag] = useState(false);
 
   useEffect(() => {
     syncCanvasOpgaver()
@@ -112,6 +113,8 @@ function FagSide() {
     (eksamensopgaver.data ?? []).filter((o) => o.eksamen_id === eksamenId);
   const opgaveKommentarerFor = (id: string) =>
     (kommentarer.data ?? []).filter((k) => k.canvas_opgave_id === id);
+  const fagOpgaver = canvasOpgaver.data ?? [];
+  const visteFagOpgaver = visAlleOpgaverFag ? fagOpgaver : fagOpgaver.slice(0, 1);
 
   return (
     <>
@@ -214,11 +217,11 @@ function FagSide() {
         )}
       </section>
 
-      {(canvasOpgaver.data ?? []).length > 0 && (
+      {fagOpgaver.length > 0 && (
         <section className="panel mt-6 p-6 sm:p-8">
           <p className="label-mono tracking-[0.18em]">Obligatoriske opgaver</p>
           <div className="mt-4 divide-y divide-line">
-            {(canvasOpgaver.data ?? []).map((o) => (
+            {visteFagOpgaver.map((o) => (
               <div key={o.id} className="py-4 first:pt-0 last:pb-0">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
@@ -274,6 +277,14 @@ function FagSide() {
               </div>
             ))}
           </div>
+          {fagOpgaver.length > 1 && (
+            <button
+              onClick={() => setVisAlleOpgaverFag((v) => !v)}
+              className="mt-3 text-sm font-medium text-steel underline-offset-4 hover:underline"
+            >
+              {visAlleOpgaverFag ? "Vis færre" : `Vis alle ${fagOpgaver.length} opgaver`}
+            </button>
+          )}
         </section>
       )}
 
