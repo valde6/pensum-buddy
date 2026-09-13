@@ -12,40 +12,136 @@ function json(data: unknown, init?: ResponseInit) {
 
 const CANVAS_BASE_URL = "https://cbscanvas.instructure.com";
 
-type CanvasSubmission = {
-  workflow_state?: string | null;
-  submitted_at?: string | null;
-  late?: boolean;
-  missing?: boolean;
+// REST-endpointet /api/v1/courses/:id/assignments er blokeret for studerende
+// på CBS' Canvas-instans. GraphQL-endpointet virker og henter i stedet
+// brugerens egne "course work submissions" på tværs af alle kurser i ét hug
+// (pagineret), som vi bagefter filtrerer ned til de fag, vi selv kender.
+type CanvasCourseWorkSubmissionNode = {
+  _id: string;
+  submittedAt: string | null;
+  late: boolean | null;
+  missing: boolean | null;
+  state: string;
+  assignment: {
+    _id: string;
+    name: string;
+    dueAt: string | null;
+    pointsPossible: number | null;
+    htmlUrl: string;
+    submissionTypes: string[];
+    course: { _id: string; name: string } | null;
+  } | null;
 };
 
-type CanvasAssignment = {
-  id: number;
-  name: string;
-  description: string | null;
-  due_at: string | null;
-  unlock_at: string | null;
-  points_possible: number | null;
-  html_url: string;
-  submission_types: string[];
-  submission?: CanvasSubmission;
+type CanvasGraphQlSvar = {
+  data?: {
+    legacyNode?: {
+      courseWorkSubmissionsConnection?: {
+        nodes: CanvasCourseWorkSubmissionNode[];
+        pageInfo: { hasNextPage: boolean; endCursor: string | null };
+      };
+    } | null;
+  };
+  errors?: { message: string }[];
 };
 
-// Henter alle assignments for ét Canvas-kursus. Kastes videre til den kaldende
-// Promise.all/allSettled, så ét fejlende fag ikke vælter de andre.
-async function hentCanvasAssignments(
-  kursusId: string,
-  token: string,
-): Promise<CanvasAssignment[]> {
-  const url = `${CANVAS_BASE_URL}/api/v1/courses/${kursusId}/assignments?per_page=50&order_by=due_at&include[]=submission`;
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-  console.log("[canvas] henter fag", kursusId, "status:", res.status);
+const CANVAS_GRAPHQL_QUERY = `
+  query($userId: ID!, $after: String) {
+    legacyNode(_id: $userId, type: User) {
+      ... on User {
+        courseWorkSubmissionsConnection(
+          filter: { states: [unsubmitted, submitted, graded] }
+          after: $after
+        ) {
+          nodes {
+            _id
+            submittedAt
+            late
+            missing
+            state
+            assignment {
+              _id
+              name
+              dueAt
+              pointsPossible
+              htmlUrl
+              submissionTypes
+              course {
+                _id
+                name
+              }
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }
+  }
+`;
+
+// users/self returnerer den kaldende bruger selv (scoped af tokenet) — ingen
+// bruger-id skal hardcodes.
+async function hentCanvasBrugerId(token: string): Promise<string> {
+  const res = await fetch(`${CANVAS_BASE_URL}/api/v1/users/self`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  console.log("[canvas] users/self status:", res.status);
   if (!res.ok) {
     const fejltekst = await res.text();
-    console.error("[canvas] Canvas fejl for", kursusId, ":", fejltekst);
-    throw new Error(`Canvas svarede ${res.status} for kursus ${kursusId}`);
+    console.error("[canvas] Kunne ikke hente Canvas-bruger-id:", fejltekst);
+    throw new Error(`Canvas svarede ${res.status} for users/self`);
   }
-  return (await res.json()) as CanvasAssignment[];
+  const data = (await res.json()) as { id: number | string };
+  return String(data.id);
+}
+
+async function hentAlleCourseWorkSubmissions(
+  userId: string,
+  token: string,
+): Promise<CanvasCourseWorkSubmissionNode[]> {
+  const noder: CanvasCourseWorkSubmissionNode[] = [];
+  let after: string | null = null;
+  let hasNextPage = true;
+
+  while (hasNextPage) {
+    const res = await fetch(`${CANVAS_BASE_URL}/api/graphql`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query: CANVAS_GRAPHQL_QUERY,
+        variables: { userId, after },
+      }),
+    });
+    console.log("[canvas] graphql side status:", res.status, "after:", after);
+    if (!res.ok) {
+      const fejltekst = await res.text();
+      console.error("[canvas] GraphQL-fejl:", fejltekst);
+      throw new Error(`Canvas GraphQL svarede ${res.status}`);
+    }
+
+    const svar = (await res.json()) as CanvasGraphQlSvar;
+    if (svar.errors?.length) {
+      console.error("[canvas] GraphQL-fejl i svar:", svar.errors);
+      throw new Error(svar.errors.map((e) => e.message).join("; "));
+    }
+
+    const connection = svar.data?.legacyNode?.courseWorkSubmissionsConnection;
+    if (!connection) {
+      throw new Error("Uventet GraphQL-svar fra Canvas");
+    }
+
+    noder.push(...connection.nodes);
+    hasNextPage = connection.pageInfo.hasNextPage;
+    after = connection.pageInfo.endCursor;
+  }
+
+  return noder;
 }
 
 export const Route = createFileRoute("/api/canvas-opgaver")({
@@ -75,49 +171,45 @@ export const Route = createFileRoute("/api/canvas-opgaver")({
         if (fagError) return json({ error: fagError.message }, { status: 400 });
         console.log("[canvas] fag med kursus-id:", fagListe?.length);
 
-        const fagMedKursus = (fagListe ?? []).filter(
-          (f): f is typeof f & { canvas_kursus_id: string } => f.canvas_kursus_id != null,
-        );
+        const fagForKursusId = new Map((fagListe ?? []).map((f) => [f.canvas_kursus_id, f.id]));
 
-        const resultater = await Promise.allSettled(
-          fagMedKursus.map(async (fag) => ({
-            fag,
-            assignments: await hentCanvasAssignments(fag.canvas_kursus_id, tokenRaekke.token),
-          })),
-        );
-
-        const alleAssignments = resultater.flatMap((r) =>
-          r.status === "fulfilled" ? r.value.assignments : [],
-        );
-        console.log("[canvas] assignments fra Canvas:", alleAssignments.length);
+        let noder: CanvasCourseWorkSubmissionNode[];
+        try {
+          const brugerId = await hentCanvasBrugerId(tokenRaekke.token);
+          console.log("[canvas] Canvas-bruger-id:", brugerId);
+          noder = await hentAlleCourseWorkSubmissions(brugerId, tokenRaekke.token);
+        } catch (e) {
+          console.error("[canvas] Kunne ikke synkronisere Canvas-opgaver:", e);
+          return json({ error: "Kunne ikke hente opgaver fra Canvas" }, { status: 502 });
+        }
+        console.log("[canvas] assignments fra Canvas:", noder.length);
 
         const rows: Database["public"]["Tables"]["canvas_opgave"]["Insert"][] = [];
-        for (const resultat of resultater) {
-          if (resultat.status === "rejected") {
-            console.error("Canvas-synkronisering fejlede for et fag:", resultat.reason);
-            continue;
-          }
-          const { fag, assignments } = resultat.value;
-          for (const a of assignments) {
-            rows.push({
-              fag_id: fag.id,
-              canvas_kursus_id: fag.canvas_kursus_id,
-              canvas_assignment_id: a.id.toString(),
-              titel: a.name,
-              beskrivelse_html: a.description ?? null,
-              forfaldsdato: a.due_at ?? null,
-              tilgaengelig_fra: a.unlock_at ?? null,
-              points: a.points_possible ?? null,
-              url_til_canvas: a.html_url,
-              submission_types: a.submission_types,
-              submission_state: a.submission?.workflow_state ?? null,
-              submitted_at: a.submission?.submitted_at ?? null,
-              late: a.submission?.late ?? false,
-              missing: a.submission?.missing ?? false,
-              sidst_synkroniseret: new Date().toISOString(),
-            });
-          }
+        for (const node of noder) {
+          const assignment = node.assignment;
+          if (!assignment?.course) continue;
+
+          const kursusId = assignment.course._id;
+          const fagId = fagForKursusId.get(kursusId);
+          if (!fagId) continue;
+
+          rows.push({
+            fag_id: fagId,
+            canvas_kursus_id: kursusId,
+            canvas_assignment_id: assignment._id,
+            titel: assignment.name,
+            forfaldsdato: assignment.dueAt ?? null,
+            url_til_canvas: assignment.htmlUrl,
+            points: assignment.pointsPossible ?? null,
+            submission_types: assignment.submissionTypes,
+            submission_state: node.state,
+            submitted_at: node.submittedAt ?? null,
+            late: node.late ?? false,
+            missing: node.missing ?? false,
+            sidst_synkroniseret: new Date().toISOString(),
+          });
         }
+        console.log("[canvas] assignments matchet til kendte fag:", rows.length);
 
         if (rows.length > 0) {
           const { error: upsertError } = await supabase
