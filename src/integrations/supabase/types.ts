@@ -427,21 +427,24 @@ export type Database = {
       kommentar: {
         Row: {
           bruger_id: string
-          forelaesning_id: string
+          canvas_opgave_id: string | null
+          forelaesning_id: string | null
           id: string
           oprettet_dato: string
           tekst: string
         }
         Insert: {
           bruger_id: string
-          forelaesning_id: string
+          canvas_opgave_id?: string | null
+          forelaesning_id?: string | null
           id?: string
           oprettet_dato?: string
           tekst: string
         }
         Update: {
           bruger_id?: string
-          forelaesning_id?: string
+          canvas_opgave_id?: string | null
+          forelaesning_id?: string | null
           id?: string
           oprettet_dato?: string
           tekst?: string
@@ -452,6 +455,13 @@ export type Database = {
             columns: ["forelaesning_id"]
             isOneToOne: false
             referencedRelation: "forelaesning"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kommentar_canvas_opgave_id_fkey"
+            columns: ["canvas_opgave_id"]
+            isOneToOne: false
+            referencedRelation: "canvas_opgave"
             referencedColumns: ["id"]
           },
         ]

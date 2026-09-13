@@ -6,10 +6,16 @@ import {
   formatKlokkeslaet,
   gemCanvasToken,
   gemKalenderUrl,
+  hentCanvasOpgaver,
   hentForelaesninger,
   hentKalender,
+  type CanvasOpgave,
   type KalenderBegivenhed,
 } from "@/lib/pensum";
+
+function dagNoegleFraISO(iso: string): string {
+  return iso.slice(0, 10);
+}
 
 export const Route = createFileRoute("/_authenticated/kalender")({
   head: () => ({
@@ -37,6 +43,14 @@ function KalenderSide() {
     queryKey: ["forelaesning"],
     queryFn: () => hentForelaesninger(),
   });
+  const canvasOpgaver = useQuery({
+    queryKey: ["canvasOpgaver"],
+    queryFn: hentCanvasOpgaver,
+  });
+
+  const opgaver: CanvasOpgave[] = canvasOpgaver.data?.harToken
+    ? canvasOpgaver.data.opgaver
+    : [];
 
   const harNoteFor = (id: string) =>
     Boolean((forelaesninger.data ?? []).find((fl) => fl.id === id)?.note_html);
@@ -52,6 +66,16 @@ function KalenderSide() {
     if (!grupper.has(dagNoegle)) grupper.set(dagNoegle, []);
     grupper.get(dagNoegle)!.push(b);
   }
+
+  const opgaveGrupper = new Map<string, CanvasOpgave[]>();
+  for (const o of opgaver) {
+    if (!o.forfaldsdato) continue;
+    const dagNoegle = dagNoegleFraISO(o.forfaldsdato);
+    if (!opgaveGrupper.has(dagNoegle)) opgaveGrupper.set(dagNoegle, []);
+    opgaveGrupper.get(dagNoegle)!.push(o);
+  }
+
+  const alleDagNoegler = [...new Set([...grupper.keys(), ...opgaveGrupper.keys()])].sort();
 
   function dagOverskrift(dagNoegle: string, eksempelIso: string) {
     const iDagNoegle = new Date().toISOString().slice(0, 10);
@@ -90,55 +114,107 @@ function KalenderSide() {
             </button>
           </div>
 
-          {grupper.size === 0 && (
+          {alleDagNoegler.length === 0 && (
             <p className="mt-6 text-sm text-ink-soft">Ingen kommende begivenheder.</p>
           )}
 
-          {[...grupper.entries()].map(([dagNoegle, begivenheder]) => (
-            <section key={dagNoegle} className="mt-8 first:mt-6">
-              <div className="mb-3 inline-flex items-baseline gap-2 rounded-full bg-steel-soft px-3.5 py-1.5">
-                <span className="font-display text-sm font-semibold tracking-tight text-steel">
-                  {dagOverskrift(dagNoegle, begivenheder[0]!.start)}
-                </span>
-              </div>
-              <div className="panel divide-y divide-line overflow-hidden">
-                {begivenheder.map((b) => {
-                  const harNote = b.forelaesningId ? harNoteFor(b.forelaesningId) : false;
-                  return (
+          {alleDagNoegler.map((dagNoegle) => {
+            const begivenheder = grupper.get(dagNoegle) ?? [];
+            const dagOpgaver = opgaveGrupper.get(dagNoegle) ?? [];
+            const eksempelIso = begivenheder[0]?.start ?? dagOpgaver[0]!.forfaldsdato!;
+            return (
+              <section key={dagNoegle} className="mt-8 first:mt-6">
+                <div className="mb-3 inline-flex items-baseline gap-2 rounded-full bg-steel-soft px-3.5 py-1.5">
+                  <span className="font-display text-sm font-semibold tracking-tight text-steel">
+                    {dagOverskrift(dagNoegle, eksempelIso)}
+                  </span>
+                </div>
+                <div className="panel divide-y divide-line overflow-hidden">
+                  {begivenheder.map((b) => {
+                    const harNote = b.forelaesningId ? harNoteFor(b.forelaesningId) : false;
+                    return (
+                      <div
+                        key={`${b.fagId}-${b.start}`}
+                        className="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-base font-medium">{b.fagNavn}</p>
+                          <p className="label-mono mt-0.5 normal-case tracking-normal">
+                            {b.type} · {formatKlokkeslaet(b.start)}–{formatKlokkeslaet(b.slut)} ·{" "}
+                            {b.lokale ?? "Online"}
+                          </p>
+                        </div>
+                        {b.forelaesningId && harNote ? (
+                          <Link
+                            to="/fag/$fagId/noter/$forelaesningId"
+                            params={{ fagId: b.fagId, forelaesningId: b.forelaesningId }}
+                            className="shrink-0 text-sm font-medium text-steel underline-offset-4 hover:underline"
+                          >
+                            Åbn note
+                          </Link>
+                        ) : (
+                          <Link
+                            to="/fag/$fagId"
+                            params={{ fagId: b.fagId }}
+                            className="shrink-0 text-sm font-medium text-steel underline-offset-4 hover:underline"
+                          >
+                            Åbn fag
+                          </Link>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {dagOpgaver.map((o) => (
                     <div
-                      key={`${b.fagId}-${b.start}`}
-                      className="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
+                      key={o.id}
+                      className="flex flex-col gap-2 border-l-2 border-clay px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div className="min-w-0">
-                        <p className="truncate text-base font-medium">{b.fagNavn}</p>
+                        <p className="truncate text-base font-medium">{o.titel}</p>
                         <p className="label-mono mt-0.5 normal-case tracking-normal">
-                          {b.type} · {formatKlokkeslaet(b.start)}–{formatKlokkeslaet(b.slut)} ·{" "}
-                          {b.lokale ?? "Online"}
+                          {o.fag?.navn ?? "Ukendt fag"} · Aflevering ·{" "}
+                          {o.forfaldsdato
+                            ? new Date(o.forfaldsdato).toLocaleTimeString("da-DK", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : ""}
                         </p>
                       </div>
-                      {b.forelaesningId && harNote ? (
-                        <Link
-                          to="/fag/$fagId/noter/$forelaesningId"
-                          params={{ fagId: b.fagId, forelaesningId: b.forelaesningId }}
-                          className="shrink-0 text-sm font-medium text-steel underline-offset-4 hover:underline"
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span
+                          className={[
+                            "label-mono rounded-full px-2.5 py-1 normal-case tracking-normal",
+                            o.submission_state === "submitted" || o.submission_state === "graded"
+                              ? "bg-sage/20 text-sage"
+                              : o.missing
+                                ? "bg-clay/20 text-clay"
+                                : "bg-steel-soft text-steel",
+                          ].join(" ")}
                         >
-                          Åbn note
-                        </Link>
-                      ) : (
-                        <Link
-                          to="/fag/$fagId"
-                          params={{ fagId: b.fagId }}
-                          className="shrink-0 text-sm font-medium text-steel underline-offset-4 hover:underline"
-                        >
-                          Åbn fag
-                        </Link>
-                      )}
+                          {o.submission_state === "submitted" || o.submission_state === "graded"
+                            ? "Afleveret"
+                            : o.missing
+                              ? "Mangler"
+                              : "Ikke afleveret"}
+                        </span>
+                        {o.url_til_canvas && (
+                          <a
+                            href={o.url_til_canvas}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="shrink-0 text-sm font-medium text-steel underline-offset-4 hover:underline"
+                          >
+                            Åbn i Canvas
+                          </a>
+                        )}
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
-            </section>
-          ))}
+                  ))}
+                </div>
+              </section>
+            );
+          })}
         </>
       )}
 

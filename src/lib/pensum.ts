@@ -103,7 +103,8 @@ export type BegrebRepetition = {
 
 export type Kommentar = {
   id: string;
-  forelaesning_id: string;
+  forelaesning_id: string | null;
+  canvas_opgave_id: string | null;
   bruger_id: string;
   tekst: string;
   oprettet_dato: string;
@@ -150,7 +151,7 @@ export type CanvasOpgave = {
   submitted_at: string | null;
   late: boolean;
   missing: boolean;
-  type: string;
+  type: string | null;
   fag: { navn: string } | null;
 };
 
@@ -251,14 +252,20 @@ export async function hentKommentarer() {
   );
 }
 
-export async function tilfoejKommentar(forelaesningId: string, tekst: string) {
-  const { data: auth } = await supabase.auth.getUser();
-  const brugerId = auth.user?.id;
+export async function tilfoejKommentar(
+  forelaesningId: string | undefined,
+  tekst: string,
+  canvasOpgaveId?: string,
+) {
+  const { data: bruger } = await supabase.auth.getUser();
+  const brugerId = bruger.user?.id;
   if (!brugerId) throw new Error("Ingen bruger");
   const { error } = await supabase.from("kommentar").insert({
-    forelaesning_id: forelaesningId,
+    forelaesning_id: forelaesningId ?? null,
+    canvas_opgave_id: canvasOpgaveId ?? null,
     bruger_id: brugerId,
     tekst,
+    oprettet_dato: new Date().toISOString(),
   });
   if (error) throw new Error(error.message);
 }
@@ -410,6 +417,16 @@ export async function hentCanvasOpgaver(): Promise<CanvasOpgaveSvar> {
   const res = await kaldCanvasApi("/api/canvas-opgaver");
   if (!res.ok) throw new Error(`Canvas-API fejlede (${res.status})`);
   return res.json() as Promise<CanvasOpgaveSvar>;
+}
+
+export async function hentCanvasOpgaverForFag(fagId: string) {
+  return unwrap<CanvasOpgave[]>(
+    await supabase
+      .from("canvas_opgave")
+      .select("*, fag:fag_id(navn)")
+      .eq("fag_id", fagId)
+      .order("forfaldsdato", { ascending: true }),
+  );
 }
 
 export async function gemCanvasToken(token: string): Promise<void> {

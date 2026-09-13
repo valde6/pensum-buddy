@@ -5,6 +5,7 @@ import {
   formatDato,
   formatEksamensdato,
   formatTidspunkt,
+  hentCanvasOpgaverForFag,
   hentEksamener,
   hentEksamensopgaver,
   hentFag,
@@ -67,6 +68,10 @@ function FagSide() {
     queryKey: ["lektionsplan", fagId],
     queryFn: () => hentLektionsplan(fagId),
   });
+  const canvasOpgaver = useQuery({
+    queryKey: ["canvasOpgaver", fagId],
+    queryFn: () => hentCanvasOpgaverForFag(fagId),
+  });
   const fremgang = useQuery({ queryKey: ["fremgang"], queryFn: hentMinFremgang });
   const kommentarer = useQuery({ queryKey: ["kommentar"], queryFn: hentKommentarer });
   const fremdrift = useQuery({
@@ -85,6 +90,12 @@ function FagSide() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["kommentar"] }),
   });
 
+  const tilfoejOpgaveKommentarMutation = useMutation({
+    mutationFn: ({ opgaveId, tekst }: { opgaveId: string; tekst: string }) =>
+      tilfoejKommentar(undefined, tekst, opgaveId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["kommentar"] }),
+  });
+
   const detteFag = (fag.data ?? []).find((f) => f.id === fagId);
   const statusFor = (id: string) =>
     (fremgang.data ?? []).find((f) => f.forelaesning_id === id)?.status ?? "ikke startet";
@@ -92,6 +103,8 @@ function FagSide() {
     (kommentarer.data ?? []).filter((k) => k.forelaesning_id === id);
   const eksamensopgaverFor = (eksamenId: string) =>
     (eksamensopgaver.data ?? []).filter((o) => o.eksamen_id === eksamenId);
+  const opgaveKommentarerFor = (id: string) =>
+    (kommentarer.data ?? []).filter((k) => k.canvas_opgave_id === id);
 
   return (
     <>
@@ -193,6 +206,69 @@ function FagSide() {
           </ul>
         )}
       </section>
+
+      {(canvasOpgaver.data ?? []).length > 0 && (
+        <section className="panel mt-6 p-6 sm:p-8">
+          <p className="label-mono tracking-[0.18em]">Obligatoriske opgaver</p>
+          <div className="mt-4 divide-y divide-line">
+            {(canvasOpgaver.data ?? []).map((o) => (
+              <div key={o.id} className="py-4 first:pt-0 last:pb-0">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="font-medium">{o.titel}</p>
+                    <p className="label-mono mt-1 normal-case tracking-normal text-ink-soft">
+                      Aflevering:{" "}
+                      {o.forfaldsdato
+                        ? new Date(o.forfaldsdato).toLocaleDateString("da-DK", {
+                            day: "numeric",
+                            month: "long",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "Ingen dato"}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span
+                      className={[
+                        "label-mono rounded-full px-2.5 py-1 normal-case tracking-normal",
+                        o.submission_state === "submitted" || o.submission_state === "graded"
+                          ? "bg-sage/20 text-sage"
+                          : o.missing
+                            ? "bg-clay/20 text-clay"
+                            : "bg-steel-soft text-steel",
+                      ].join(" ")}
+                    >
+                      {o.submission_state === "submitted" || o.submission_state === "graded"
+                        ? "Afleveret"
+                        : o.missing
+                          ? "Mangler"
+                          : "Ikke afleveret"}
+                    </span>
+                    {o.url_til_canvas && (
+                      <a
+                        href={o.url_til_canvas}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="label-mono rounded-full bg-steel-soft px-2.5 py-1 normal-case tracking-normal text-steel hover:bg-steel/20"
+                      >
+                        Åbn i Canvas
+                      </a>
+                    )}
+                  </div>
+                </div>
+                <KommentarTraad
+                  kommentarer={opgaveKommentarerFor(o.id)}
+                  gemmer={tilfoejOpgaveKommentarMutation.isPending}
+                  onTilfoej={(tekst) =>
+                    tilfoejOpgaveKommentarMutation.mutate({ opgaveId: o.id, tekst })
+                  }
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {(lektionsplan.data ?? []).length > 0 && (
         <details className="group panel mt-6 p-6 sm:p-8">
