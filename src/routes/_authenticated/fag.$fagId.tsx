@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   formatDato,
   formatEksamensdato,
@@ -18,6 +18,7 @@ import {
   saetStatus,
   statusFarve,
   STATUSSER,
+  syncCanvasOpgaver,
   tilfoejKommentar,
   type Kommentar,
   type Status,
@@ -46,6 +47,12 @@ export const Route = createFileRoute("/_authenticated/fag/$fagId")({
 function FagSide() {
   const { fagId } = Route.useParams();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    syncCanvasOpgaver()
+      .then(() => queryClient.invalidateQueries({ queryKey: ["canvasOpgaver"] }))
+      .catch(console.error);
+  }, [queryClient]);
 
   const fag = useQuery({ queryKey: ["fag"], queryFn: hentFag });
   const forelaesninger = useQuery({

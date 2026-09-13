@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   formatDag,
   formatKlokkeslaet,
@@ -9,6 +9,7 @@ import {
   hentCanvasOpgaver,
   hentForelaesninger,
   hentKalender,
+  syncCanvasOpgaver,
   type CanvasOpgave,
   type KalenderBegivenhed,
 } from "@/lib/pensum";
@@ -36,7 +37,14 @@ export const Route = createFileRoute("/_authenticated/kalender")({
 });
 
 function KalenderSide() {
+  const queryClient = useQueryClient();
   const [visOevelser, setVisOevelser] = useState(false);
+
+  useEffect(() => {
+    syncCanvasOpgaver()
+      .then(() => queryClient.invalidateQueries({ queryKey: ["canvasOpgaver"] }))
+      .catch(console.error);
+  }, [queryClient]);
 
   const kalender = useQuery({ queryKey: ["kalender"], queryFn: hentKalender });
   const forelaesninger = useQuery({

@@ -25,6 +25,7 @@ import { Route as ApiKalenderRouteImport } from './routes/api/kalender'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedFagFagIdRouteImport } from './routes/_authenticated/fag.$fagId'
+import { Route as ApiCanvasOpgaverSyncRouteImport } from './routes/api/canvas-opgaver.sync'
 import { Route as ApiFagFagNavnForelaesningerRouteImport } from './routes/api/fag/$fagNavn/forelaesninger'
 import { Route as AuthenticatedFagFagIdNoterForelaesningIdRouteImport } from './routes/_authenticated/fag.$fagId_.noter.$forelaesningId'
 
@@ -110,6 +111,11 @@ const AuthenticatedFagFagIdRoute = AuthenticatedFagFagIdRouteImport.update({
   path: '/fag/$fagId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiCanvasOpgaverSyncRoute = ApiCanvasOpgaverSyncRouteImport.update({
+  id: '/sync',
+  path: '/sync',
+  getParentRoute: () => ApiCanvasOpgaverRoute,
+} as any)
 const ApiFagFagNavnForelaesningerRoute =
   ApiFagFagNavnForelaesningerRouteImport.update({
     id: '/api/fag/$fagNavn/forelaesninger',
@@ -134,11 +140,12 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/kalender': typeof AuthenticatedKalenderRoute
   '/repetition': typeof AuthenticatedRepetitionRoute
-  '/api/canvas-opgaver': typeof ApiCanvasOpgaverRoute
+  '/api/canvas-opgaver': typeof ApiCanvasOpgaverRouteWithChildren
   '/api/kalender': typeof ApiKalenderRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/fag/$fagId': typeof AuthenticatedFagFagIdRoute
+  '/api/canvas-opgaver/sync': typeof ApiCanvasOpgaverSyncRoute
   '/api/fag/$fagNavn/forelaesninger': typeof ApiFagFagNavnForelaesningerRoute
   '/fag/$fagId/noter/$forelaesningId': typeof AuthenticatedFagFagIdNoterForelaesningIdRoute
 }
@@ -153,11 +160,12 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/kalender': typeof AuthenticatedKalenderRoute
   '/repetition': typeof AuthenticatedRepetitionRoute
-  '/api/canvas-opgaver': typeof ApiCanvasOpgaverRoute
+  '/api/canvas-opgaver': typeof ApiCanvasOpgaverRouteWithChildren
   '/api/kalender': typeof ApiKalenderRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/fag/$fagId': typeof AuthenticatedFagFagIdRoute
+  '/api/canvas-opgaver/sync': typeof ApiCanvasOpgaverSyncRoute
   '/api/fag/$fagNavn/forelaesninger': typeof ApiFagFagNavnForelaesningerRoute
   '/fag/$fagId/noter/$forelaesningId': typeof AuthenticatedFagFagIdNoterForelaesningIdRoute
 }
@@ -174,11 +182,12 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/kalender': typeof AuthenticatedKalenderRoute
   '/_authenticated/repetition': typeof AuthenticatedRepetitionRoute
-  '/api/canvas-opgaver': typeof ApiCanvasOpgaverRoute
+  '/api/canvas-opgaver': typeof ApiCanvasOpgaverRouteWithChildren
   '/api/kalender': typeof ApiKalenderRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/fag/$fagId': typeof AuthenticatedFagFagIdRoute
+  '/api/canvas-opgaver/sync': typeof ApiCanvasOpgaverSyncRoute
   '/api/fag/$fagNavn/forelaesninger': typeof ApiFagFagNavnForelaesningerRoute
   '/_authenticated/fag/$fagId_/noter/$forelaesningId': typeof AuthenticatedFagFagIdNoterForelaesningIdRoute
 }
@@ -200,6 +209,7 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/fag/$fagId'
+    | '/api/canvas-opgaver/sync'
     | '/api/fag/$fagNavn/forelaesninger'
     | '/fag/$fagId/noter/$forelaesningId'
   fileRoutesByTo: FileRoutesByTo
@@ -219,6 +229,7 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/fag/$fagId'
+    | '/api/canvas-opgaver/sync'
     | '/api/fag/$fagNavn/forelaesninger'
     | '/fag/$fagId/noter/$forelaesningId'
   id:
@@ -239,6 +250,7 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/fag/$fagId'
+    | '/api/canvas-opgaver/sync'
     | '/api/fag/$fagNavn/forelaesninger'
     | '/_authenticated/fag/$fagId_/noter/$forelaesningId'
   fileRoutesById: FileRoutesById
@@ -250,7 +262,7 @@ export interface RootRouteChildren {
   McpRoute: typeof McpRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
-  ApiCanvasOpgaverRoute: typeof ApiCanvasOpgaverRoute
+  ApiCanvasOpgaverRoute: typeof ApiCanvasOpgaverRouteWithChildren
   ApiKalenderRoute: typeof ApiKalenderRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -371,6 +383,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFagFagIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/canvas-opgaver/sync': {
+      id: '/api/canvas-opgaver/sync'
+      path: '/sync'
+      fullPath: '/api/canvas-opgaver/sync'
+      preLoaderRoute: typeof ApiCanvasOpgaverSyncRouteImport
+      parentRoute: typeof ApiCanvasOpgaverRoute
+    }
     '/api/fag/$fagNavn/forelaesninger': {
       id: '/api/fag/$fagNavn/forelaesninger'
       path: '/api/fag/$fagNavn/forelaesninger'
@@ -412,6 +431,17 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface ApiCanvasOpgaverRouteChildren {
+  ApiCanvasOpgaverSyncRoute: typeof ApiCanvasOpgaverSyncRoute
+}
+
+const ApiCanvasOpgaverRouteChildren: ApiCanvasOpgaverRouteChildren = {
+  ApiCanvasOpgaverSyncRoute: ApiCanvasOpgaverSyncRoute,
+}
+
+const ApiCanvasOpgaverRouteWithChildren =
+  ApiCanvasOpgaverRoute._addFileChildren(ApiCanvasOpgaverRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -420,7 +450,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
-  ApiCanvasOpgaverRoute: ApiCanvasOpgaverRoute,
+  ApiCanvasOpgaverRoute: ApiCanvasOpgaverRouteWithChildren,
   ApiKalenderRoute: ApiKalenderRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,

@@ -438,6 +438,174 @@ export async function gemCanvasToken(token: string): Promise<void> {
   if (!res.ok) throw new Error("Kunne ikke gemme Canvas-token");
 }
 
+const CANVAS_GRAPHQL_URL = "https://cbscanvas.instructure.com/api/graphql";
+
+type CanvasGraphQlNode = {
+  _id: string;
+  submittedAt: string | null;
+  late: boolean | null;
+  missing: boolean | null;
+  state: string | null;
+  assignment: {
+    _id: string;
+    name: string;
+    description: string | null;
+    dueAt: string | null;
+    unlockAt: string | null;
+    pointsPossible: number | null;
+    htmlUrl: string;
+    submissionTypes: string[];
+    course: { _id: string; name: string } | null;
+  } | null;
+};
+
+type CanvasGraphQlSvar = {
+  data?: {
+    legacyNode?: {
+      courseWorkSubmissionsConnection?: {
+        nodes: CanvasGraphQlNode[];
+        pageInfo: { hasNextPage: boolean; endCursor: string | null };
+      };
+    } | null;
+  };
+  errors?: { message: string }[];
+};
+
+const CANVAS_GRAPHQL_QUERY = `
+  query($userId: ID!, $after: String) {
+    legacyNode(_id: $userId, type: User) {
+      ... on User {
+        courseWorkSubmissionsConnection(
+          filter: { states: [unsubmitted, submitted, graded] }
+          after: $after
+        ) {
+          nodes {
+            _id
+            submittedAt
+            late
+            missing
+            state
+            assignment {
+              _id
+              name
+              description
+              dueAt
+              unlockAt
+              pointsPossible
+              htmlUrl
+              submissionTypes
+              course {
+                _id
+                name
+              }
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }
+  }
+`;
+
+// users/self returnerer den kaldende bruger selv (scoped af browserens
+// Canvas-sessionscookies) — intet bruger-id skal hardcodes.
+async function hentCanvasBrugerIdFraBrowser(): Promise<string> {
+  const res = await fetch("https://cbscanvas.instructure.com/api/v1/users/self", {
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error("Kunne ikke hente Canvas-bruger-id");
+  const data = (await res.json()) as { id: number | string };
+  return String(data.id);
+}
+
+type CanvasAssignmentInput = {
+  canvas_assignment_id: string;
+  canvas_kursus_id: string;
+  titel: string;
+  beskrivelse_html: string | null;
+  forfaldsdato: string | null;
+  tilgaengelig_fra: string | null;
+  points: number | null;
+  url_til_canvas: string | null;
+  submission_types: string[] | null;
+  submission_state: string | null;
+  submitted_at: string | null;
+  late: boolean;
+  missing: boolean;
+};
+
+// Canvas GraphQL kræver brugerens egne sessionscookies, som kun findes i
+// browseren — derfor kører selve Canvas-kaldet herfra (client-side), og kun
+// resultatet sendes videre til vores egen server (/api/canvas-opgaver/sync),
+// som upserter det til Supabase.
+export async function syncCanvasOpgaver(): Promise<void> {
+  const brugerId = await hentCanvasBrugerIdFraBrowser();
+
+  const noder: CanvasGraphQlNode[] = [];
+  let after: string | null = null;
+  let hasNextPage = true;
+
+  while (hasNextPage) {
+    const graphqlRes = await fetch(CANVAS_GRAPHQL_URL, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: CANVAS_GRAPHQL_QUERY,
+        variables: { userId: brugerId, after },
+      }),
+    });
+    if (!graphqlRes.ok) throw new Error("Canvas GraphQL fejlede");
+
+    const svar = (await graphqlRes.json()) as CanvasGraphQlSvar;
+    if (svar.errors?.length) throw new Error(svar.errors.map((e) => e.message).join("; "));
+
+    const connection = svar.data?.legacyNode?.courseWorkSubmissionsConnection;
+    if (!connection) throw new Error("Uventet svar fra Canvas GraphQL");
+
+    noder.push(...connection.nodes);
+    hasNextPage = connection.pageInfo.hasNextPage;
+    after = connection.pageInfo.endCursor;
+  }
+
+  const assignments: CanvasAssignmentInput[] = noder
+    .filter((n) => n.assignment?.course)
+    .map((n) => ({
+      canvas_assignment_id: n.assignment!._id,
+      canvas_kursus_id: n.assignment!.course!._id,
+      titel: n.assignment!.name,
+      beskrivelse_html: n.assignment!.description ?? null,
+      forfaldsdato: n.assignment!.dueAt ?? null,
+      tilgaengelig_fra: n.assignment!.unlockAt ?? null,
+      points: n.assignment!.pointsPossible ?? null,
+      url_til_canvas: n.assignment!.htmlUrl,
+      submission_types: n.assignment!.submissionTypes,
+      submission_state: n.state,
+      submitted_at: n.submittedAt ?? null,
+      late: Boolean(n.late),
+      missing: Boolean(n.missing),
+    }));
+
+  if (assignments.length === 0) return;
+
+  const { data: auth } = await supabase.auth.getSession();
+  const token = auth.session?.access_token;
+  if (!token) throw new Error("Ingen bruger");
+
+  const syncRes = await fetch("/api/canvas-opgaver/sync", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ assignments }),
+  });
+  if (!syncRes.ok) throw new Error("Sync til Supabase fejlede");
+}
+
 export async function tilfoejForelaesning(input: {
   fag_id: string;
   nummer: number;

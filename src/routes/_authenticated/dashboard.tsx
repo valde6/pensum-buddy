@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import {
   dageTil,
   formatDato,
@@ -13,6 +14,7 @@ import {
   hentKalenderFra,
   hentLitteratur,
   hentSamletFremdrift,
+  syncCanvasOpgaver,
   type CanvasOpgave,
   type Fag,
 } from "@/lib/pensum";
@@ -40,6 +42,14 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 const barFarver = ["bg-steel", "bg-sage", "bg-clay"];
 
 function Dashboard() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    syncCanvasOpgaver()
+      .then(() => queryClient.invalidateQueries({ queryKey: ["canvasOpgaver"] }))
+      .catch(console.error);
+  }, [queryClient]);
+
   const fag = useQuery({ queryKey: ["fag"], queryFn: hentFag });
   const forelaesninger = useQuery({
     queryKey: ["forelaesning"],
