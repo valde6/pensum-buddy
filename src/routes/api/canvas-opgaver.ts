@@ -39,7 +39,10 @@ async function hentCanvasAssignments(
 ): Promise<CanvasAssignment[]> {
   const url = `${CANVAS_BASE_URL}/api/v1/courses/${kursusId}/assignments?per_page=50&order_by=due_at&include[]=submission`;
   const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  console.log("[canvas] henter fag", kursusId, "status:", res.status);
   if (!res.ok) {
+    const fejltekst = await res.text();
+    console.error("[canvas] Canvas fejl for", kursusId, ":", fejltekst);
     throw new Error(`Canvas svarede ${res.status} for kursus ${kursusId}`);
   }
   return (await res.json()) as CanvasAssignment[];
@@ -70,6 +73,7 @@ export const Route = createFileRoute("/api/canvas-opgaver")({
           .select("id, navn, canvas_kursus_id")
           .not("canvas_kursus_id", "is", null);
         if (fagError) return json({ error: fagError.message }, { status: 400 });
+        console.log("[canvas] fag med kursus-id:", fagListe?.length);
 
         const fagMedKursus = (fagListe ?? []).filter(
           (f): f is typeof f & { canvas_kursus_id: string } => f.canvas_kursus_id != null,
@@ -81,6 +85,11 @@ export const Route = createFileRoute("/api/canvas-opgaver")({
             assignments: await hentCanvasAssignments(fag.canvas_kursus_id, tokenRaekke.token),
           })),
         );
+
+        const alleAssignments = resultater.flatMap((r) =>
+          r.status === "fulfilled" ? r.value.assignments : [],
+        );
+        console.log("[canvas] assignments fra Canvas:", alleAssignments.length);
 
         const rows: Database["public"]["Tables"]["canvas_opgave"]["Insert"][] = [];
         for (const resultat of resultater) {
@@ -114,6 +123,7 @@ export const Route = createFileRoute("/api/canvas-opgaver")({
           const { error: upsertError } = await supabase
             .from("canvas_opgave")
             .upsert(rows, { onConflict: "canvas_assignment_id" });
+          if (upsertError) console.error("[canvas] upsert fejl:", upsertError.message);
           if (upsertError) return json({ error: upsertError.message }, { status: 400 });
         }
 
