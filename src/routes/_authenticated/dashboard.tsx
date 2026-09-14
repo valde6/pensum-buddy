@@ -176,7 +176,7 @@ function Dashboard() {
         {naesteEksamen ? (
           <>
             <div className="flex flex-wrap items-start justify-between gap-6">
-              <p className="label-mono self-center normal-case tracking-normal">
+              <p className="font-display text-3xl font-bold tracking-tight text-steel">
                 {naesteEksamenFag?.navn ?? "Fag"}
               </p>
               <div className="flex gap-8">
