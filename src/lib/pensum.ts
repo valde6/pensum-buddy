@@ -14,6 +14,7 @@ export type Fag = {
   laeringsmaal: string | null;
   kursusindhold: string | null;
   eksamensdetaljer: string | null;
+  farve: string | null;
 };
 
 export type Forelaesning = {

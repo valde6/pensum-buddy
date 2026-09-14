@@ -312,6 +312,7 @@ export type Database = {
           eksamensdetaljer: string | null
           eksamensform: string | null
           eksamensperiode: string | null
+          farve: string | null
           id: string
           kursusindhold: string | null
           laeringsmaal: string | null
@@ -326,6 +327,7 @@ export type Database = {
           eksamensdetaljer?: string | null
           eksamensform?: string | null
           eksamensperiode?: string | null
+          farve?: string | null
           id?: string
           kursusindhold?: string | null
           laeringsmaal?: string | null
@@ -340,6 +342,7 @@ export type Database = {
           eksamensdetaljer?: string | null
           eksamensform?: string | null
           eksamensperiode?: string | null
+          farve?: string | null
           id?: string
           kursusindhold?: string | null
           laeringsmaal?: string | null
