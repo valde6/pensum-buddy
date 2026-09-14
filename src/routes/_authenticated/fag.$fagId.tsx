@@ -47,7 +47,15 @@ export const Route = createFileRoute("/_authenticated/fag/$fagId")({
 // Kompakt, ét-linjes fremgangsbjælke med label — bruges kun i fag-headeren.
 // Lever lokalt her frem for i den delte FremdriftVisning, som altid viser
 // begge spor stablet og derfor ikke passer til dette kompakte layout.
-function Fremgangsbjaelke({ label, tal }: { label: string; tal: FremdriftTal }) {
+function Fremgangsbjaelke({
+  label,
+  tal,
+  farve = "bg-steel",
+}: {
+  label: string;
+  tal: FremdriftTal;
+  farve?: string;
+}) {
   const pct = tal.total === 0 ? 0 : Math.round((tal.forbi / tal.total) * 100);
   return (
     <div>
@@ -58,7 +66,7 @@ function Fremgangsbjaelke({ label, tal }: { label: string; tal: FremdriftTal }) 
         </span>
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-line">
-        <div className="h-full bg-steel" style={{ width: `${pct}%` }} />
+        <div className={`h-full ${farve}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
@@ -208,7 +216,14 @@ function FagSide() {
               for at se fremdrift
             </p>
           ) : (
-            <Fremgangsbjaelke label="Forelæsninger" tal={fremdrift.data.forelaesninger} />
+            <div className="space-y-3">
+              <Fremgangsbjaelke label="Forelæsninger" tal={fremdrift.data.forelaesninger} />
+              <Fremgangsbjaelke
+                label="Øvelsestimer"
+                tal={fremdrift.data.ovelser}
+                farve="bg-sage"
+              />
+            </div>
           )}
         </div>
       </section>

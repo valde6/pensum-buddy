@@ -387,8 +387,8 @@ function FagKort({ fag: f }: { fag: Fag }) {
         />
         {fremdrift.data?.tilknyttet && (
           <>
-            <Fremgangsbjaelke tal={fremdrift.data.forelaesninger} />
-            <Fremgangsbjaelke tal={fremdrift.data.ovelser} />
+            <Fremgangsbjaelke label="Forelæsninger" tal={fremdrift.data.forelaesninger} />
+            <Fremgangsbjaelke label="Øvelsestimer" tal={fremdrift.data.ovelser} />
           </>
         )}
       </div>
