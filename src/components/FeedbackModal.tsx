@@ -26,9 +26,22 @@ export function FeedbackModal({ onClose }: { onClose: () => void }) {
 
     setBesked(null);
     setSender(true);
-    const { error } = await supabase.functions.invoke("send-feedback", {
-      body: { type, titel: titel.trim(), beskrivelse: beskrivelse.trim(), side: pathname },
+    const { data: auth } = await supabase.auth.getSession();
+    const token = auth.session?.access_token;
+    const res = await fetch("/api/send-feedback", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        type,
+        titel: titel.trim(),
+        beskrivelse: beskrivelse.trim(),
+        side: pathname,
+      }),
     });
+    const error = res.ok ? null : true;
     setSender(false);
 
     if (error) {

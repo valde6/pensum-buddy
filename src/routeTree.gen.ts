@@ -22,6 +22,7 @@ import { Route as AuthenticatedKalenderRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedRepetitionRouteImport } from './routes/_authenticated/repetition'
 import { Route as ApiCanvasOpgaverRouteImport } from './routes/api/canvas-opgaver'
 import { Route as ApiKalenderRouteImport } from './routes/api/kalender'
+import { Route as ApiSendFeedbackRouteImport } from './routes/api/send-feedback'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedFagFagIdRouteImport } from './routes/_authenticated/fag.$fagId'
@@ -95,6 +96,11 @@ const ApiKalenderRoute = ApiKalenderRouteImport.update({
   path: '/api/kalender',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSendFeedbackRoute = ApiSendFeedbackRouteImport.update({
+  id: '/api/send-feedback',
+  path: '/api/send-feedback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   id: '/.lovable/oauth/consent',
   path: '/.lovable/oauth/consent',
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/repetition': typeof AuthenticatedRepetitionRoute
   '/api/canvas-opgaver': typeof ApiCanvasOpgaverRouteWithChildren
   '/api/kalender': typeof ApiKalenderRoute
+  '/api/send-feedback': typeof ApiSendFeedbackRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/fag/$fagId': typeof AuthenticatedFagFagIdRoute
@@ -162,6 +169,7 @@ export interface FileRoutesByTo {
   '/repetition': typeof AuthenticatedRepetitionRoute
   '/api/canvas-opgaver': typeof ApiCanvasOpgaverRouteWithChildren
   '/api/kalender': typeof ApiKalenderRoute
+  '/api/send-feedback': typeof ApiSendFeedbackRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/fag/$fagId': typeof AuthenticatedFagFagIdRoute
@@ -184,6 +192,7 @@ export interface FileRoutesById {
   '/_authenticated/repetition': typeof AuthenticatedRepetitionRoute
   '/api/canvas-opgaver': typeof ApiCanvasOpgaverRouteWithChildren
   '/api/kalender': typeof ApiKalenderRoute
+  '/api/send-feedback': typeof ApiSendFeedbackRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/fag/$fagId': typeof AuthenticatedFagFagIdRoute
@@ -206,6 +215,7 @@ export interface FileRouteTypes {
     | '/repetition'
     | '/api/canvas-opgaver'
     | '/api/kalender'
+    | '/api/send-feedback'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/fag/$fagId'
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | '/repetition'
     | '/api/canvas-opgaver'
     | '/api/kalender'
+    | '/api/send-feedback'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/fag/$fagId'
@@ -247,6 +258,7 @@ export interface FileRouteTypes {
     | '/_authenticated/repetition'
     | '/api/canvas-opgaver'
     | '/api/kalender'
+    | '/api/send-feedback'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/fag/$fagId'
@@ -264,6 +276,7 @@ export interface RootRouteChildren {
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiCanvasOpgaverRoute: typeof ApiCanvasOpgaverRouteWithChildren
   ApiKalenderRoute: typeof ApiKalenderRoute
+  ApiSendFeedbackRoute: typeof ApiSendFeedbackRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiFagFagNavnForelaesningerRoute: typeof ApiFagFagNavnForelaesningerRoute
@@ -362,6 +375,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiKalenderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/send-feedback': {
+      id: '/api/send-feedback'
+      path: '/api/send-feedback'
+      fullPath: '/api/send-feedback'
+      preLoaderRoute: typeof ApiSendFeedbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/.lovable/oauth/consent': {
       id: '/.lovable/oauth/consent'
       path: '/.lovable/oauth/consent'
@@ -452,6 +472,7 @@ const rootRouteChildren: RootRouteChildren = {
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiCanvasOpgaverRoute: ApiCanvasOpgaverRouteWithChildren,
   ApiKalenderRoute: ApiKalenderRoute,
+  ApiSendFeedbackRoute: ApiSendFeedbackRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiFagFagNavnForelaesningerRoute: ApiFagFagNavnForelaesningerRoute,
