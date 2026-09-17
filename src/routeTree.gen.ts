@@ -23,6 +23,7 @@ import { Route as AuthenticatedRepetitionRouteImport } from './routes/_authentic
 import { Route as ApiCanvasOpgaverRouteImport } from './routes/api/canvas-opgaver'
 import { Route as ApiKalenderRouteImport } from './routes/api/kalender'
 import { Route as ApiSendFeedbackRouteImport } from './routes/api/send-feedback'
+import { Route as ApiUploadNoteRouteImport } from './routes/api/upload-note'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedFagFagIdRouteImport } from './routes/_authenticated/fag.$fagId'
@@ -101,6 +102,11 @@ const ApiSendFeedbackRoute = ApiSendFeedbackRouteImport.update({
   path: '/api/send-feedback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiUploadNoteRoute = ApiUploadNoteRouteImport.update({
+  id: '/api/upload-note',
+  path: '/api/upload-note',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   id: '/.lovable/oauth/consent',
   path: '/.lovable/oauth/consent',
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/api/canvas-opgaver': typeof ApiCanvasOpgaverRouteWithChildren
   '/api/kalender': typeof ApiKalenderRoute
   '/api/send-feedback': typeof ApiSendFeedbackRoute
+  '/api/upload-note': typeof ApiUploadNoteRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/fag/$fagId': typeof AuthenticatedFagFagIdRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/api/canvas-opgaver': typeof ApiCanvasOpgaverRouteWithChildren
   '/api/kalender': typeof ApiKalenderRoute
   '/api/send-feedback': typeof ApiSendFeedbackRoute
+  '/api/upload-note': typeof ApiUploadNoteRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/fag/$fagId': typeof AuthenticatedFagFagIdRoute
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   '/api/canvas-opgaver': typeof ApiCanvasOpgaverRouteWithChildren
   '/api/kalender': typeof ApiKalenderRoute
   '/api/send-feedback': typeof ApiSendFeedbackRoute
+  '/api/upload-note': typeof ApiUploadNoteRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/fag/$fagId': typeof AuthenticatedFagFagIdRoute
@@ -216,6 +225,7 @@ export interface FileRouteTypes {
     | '/api/canvas-opgaver'
     | '/api/kalender'
     | '/api/send-feedback'
+    | '/api/upload-note'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/fag/$fagId'
@@ -237,6 +247,7 @@ export interface FileRouteTypes {
     | '/api/canvas-opgaver'
     | '/api/kalender'
     | '/api/send-feedback'
+    | '/api/upload-note'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/fag/$fagId'
@@ -259,6 +270,7 @@ export interface FileRouteTypes {
     | '/api/canvas-opgaver'
     | '/api/kalender'
     | '/api/send-feedback'
+    | '/api/upload-note'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/fag/$fagId'
@@ -277,6 +289,7 @@ export interface RootRouteChildren {
   ApiCanvasOpgaverRoute: typeof ApiCanvasOpgaverRouteWithChildren
   ApiKalenderRoute: typeof ApiKalenderRoute
   ApiSendFeedbackRoute: typeof ApiSendFeedbackRoute
+  ApiUploadNoteRoute: typeof ApiUploadNoteRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiFagFagNavnForelaesningerRoute: typeof ApiFagFagNavnForelaesningerRoute
@@ -382,6 +395,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSendFeedbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/upload-note': {
+      id: '/api/upload-note'
+      path: '/api/upload-note'
+      fullPath: '/api/upload-note'
+      preLoaderRoute: typeof ApiUploadNoteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/.lovable/oauth/consent': {
       id: '/.lovable/oauth/consent'
       path: '/.lovable/oauth/consent'
@@ -473,6 +493,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCanvasOpgaverRoute: ApiCanvasOpgaverRouteWithChildren,
   ApiKalenderRoute: ApiKalenderRoute,
   ApiSendFeedbackRoute: ApiSendFeedbackRoute,
+  ApiUploadNoteRoute: ApiUploadNoteRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiFagFagNavnForelaesningerRoute: ApiFagFagNavnForelaesningerRoute,
